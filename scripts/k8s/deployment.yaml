@@ -1,0 +1,44 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ${P_K8S_APP}
+  namespace: ${P_NAMESPACE}
+  labels:
+    app: ${P_K8S_APP}-app
+  annotations:
+    channels: "banca_movil,banca_internet"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${P_K8S_APP}-app
+  template:
+    metadata:
+      labels:
+        app: ${P_K8S_APP}-app
+    spec:
+      containers:
+        - name: ${P_K8S_APP}
+          image: ${P_IMG_REGISTRY_DOMAIN}/${P_APP_IMAGE}:${P_APP_VERSION}
+          imagePullPolicy: Always
+          ports:
+            - name: http-8080
+              containerPort: 80
+              hostPort: ${P_K8S_HOST_PORT}
+              protocol: TCP
+          # volumeMounts:
+          #   - mountPath: "/work/config"
+          #     name: application-config-folder
+          envFrom:
+            - secretRef:
+                name: ${P_K8S_SECRET}
+          resources:
+            requests:
+              memory: "180Mi"
+              cpu: "10m"
+      imagePullSecrets:
+        - name: ${P_K8S_SECRET_REGISTRY}
+      # volumes:
+      #   - name: application-config-folder
+      #     persistentVolumeClaim:
+      #       claimName: ${VOLUME_NAME_CFG}-pvc

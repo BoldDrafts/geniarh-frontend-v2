@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: angularfrontend
+  namespace: synopsis-ws
+spec:
+  project: default
+  source:
+    repoURL: https://dev.azure.com/SynopsisAzure/Synopsis_PlatformEngineering/_git/synopsis-argocd-config
+    targetRevision: main
+    path: dev/angularfrontend
+  destination:
+    server: https://k8sdeploy.synopsis.cloud:16443
+    namespace: synopsis-ws
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
