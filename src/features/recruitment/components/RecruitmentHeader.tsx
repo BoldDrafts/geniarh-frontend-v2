@@ -2,12 +2,11 @@
 import React from 'react';
 import {
   BarChart3,
-  BrainCircuit,
   FileText,
   Plus,
   RefreshCw
 } from 'lucide-react';
-import { LoadingButton } from '../../../shared/components/LoadingButton';
+import { LoadingButton } from './LoadingButton';
 
 interface RecruitmentHeaderProps {
   viewMode: 'list' | 'analytics';
@@ -16,7 +15,6 @@ interface RecruitmentHeaderProps {
   isLoadingRecruitments: boolean;
   onViewModeChange: (mode: 'list' | 'analytics') => void;
   onRefresh: () => void;
-  onShowAIAssistant: () => void;
   onCreateNew: () => void;
 }
 
@@ -27,7 +25,6 @@ const RecruitmentHeader: React.FC<RecruitmentHeaderProps> = ({
   isLoadingRecruitments,
   onViewModeChange,
   onRefresh,
-  onShowAIAssistant,
   onCreateNew
 }) => {
   return (

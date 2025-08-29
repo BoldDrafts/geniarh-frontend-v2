@@ -1,6 +1,6 @@
 import { Check, ChevronLeft, ChevronRight, Loader2, Search, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { candidatesService } from '../../../features/candidate/api/candidatesService';
+import { candidatesService } from '../api/candidatesService';
 import { Candidate } from '../types/recruitment';
 
 interface RecruitmentAddCandidateModalProps {

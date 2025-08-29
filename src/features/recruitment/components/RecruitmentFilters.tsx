@@ -1,7 +1,7 @@
 // components/RecruitmentFilters.tsx
 import { Filter, Search } from 'lucide-react';
 import React from 'react';
-import { LoadingButton } from '../../../shared/components/LoadingButton';
+import { LoadingButton } from './LoadingButton';
 import { RecruitmentFiltersType, RecruitmentStatus } from '../types/recruitment';
 
 interface RecruitmentFiltersProps {

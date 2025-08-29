@@ -7,11 +7,20 @@ import {
   RecruitmentStatus,
   RecruitmentFiltersType,
   RecruitmentListParams,
-  Pagination
+  RecruitmentProcess
 } from '../types/recruitment';
-import { useLoading } from '../../../shared/hooks/useLoading';
-import { useFullScreenLoading } from '../../../shared/hooks/useFullScreenLoading';
-import { RECRUITMENT_LOADING_KEYS } from '../../../shared/utils/loadingKeys';
+import { useLoading } from './useLoading';
+import { useFullScreenLoading } from './useFullScreenLoading';
+import { RECRUITMENT_LOADING_KEYS } from '../utils/loadingKeys';
+
+interface Pagination {
+  current: number;
+  limit: number;
+  total: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
 
 export const useRecruitment = () => {
   const { withLoading, isLoading } = useLoading();

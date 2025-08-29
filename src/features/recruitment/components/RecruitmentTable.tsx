@@ -1,11 +1,20 @@
 // components/RecruitmentTable.tsx
 import React from 'react';
 import { FileText, Plus } from 'lucide-react';
-import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
-import { LoadingButton } from '../../../shared/components/LoadingButton';
-import { LoadingOverlay } from '../../../shared/components/LoadingOverlay';
+import { LoadingSpinner } from './LoadingSpinner';
+import { LoadingButton } from './LoadingButton';
+import LoadingOverlay from './LoadingOverlay';
 import RecruitmentTableRow from './RecruitmentTableRow';
-import { RecruitmentProcess, RecruitmentPagination } from '../types/recruitment';
+import { RecruitmentProcess } from '../types/recruitment';
+
+interface RecruitmentPagination {
+  current: number;
+  limit: number;
+  total: number;
+  pages: number;
+  hasNext?: boolean;
+  hasPrevious?: boolean;
+}
 
 interface RecruitmentTableProps {
   processes: RecruitmentProcess[];

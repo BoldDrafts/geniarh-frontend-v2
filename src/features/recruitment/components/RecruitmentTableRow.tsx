@@ -13,14 +13,14 @@ import {
   Clock,
   AlertCircle
 } from 'lucide-react';
-import { LoadingSpinner } from '../../../shared/components/LoadingSpinner';
+import { LoadingSpinner } from './LoadingSpinner';
 import { RecruitmentProcess } from '../types/recruitment';
 import { 
   formatDate, 
   getStatusColor, 
   getPlatformColor 
 } from '../utils/recruitmentUtils';
-import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../../../shared/utils/loadingKeys';
+import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../utils/loadingKeys';
 
 interface RecruitmentTableRowProps {
   process: RecruitmentProcess;

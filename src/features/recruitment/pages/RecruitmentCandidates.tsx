@@ -43,6 +43,10 @@ const RecruitmentCandidates: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<CandidateStatus | undefined>();
   const [selectedStage, setSelectedStage] = useState<CandidateStage | undefined>();
+  const [minMatchScore, setMinMatchScore] = useState<number | undefined>();
+  const [maxMatchScore, setMaxMatchScore] = useState<number | undefined>();
+  const [sortBy, setSortBy] = useState<'name' | 'matchScore' | 'status' | 'createdAt'>('matchScore');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
     limit: 20,
@@ -72,7 +76,9 @@ const RecruitmentCandidates: React.FC = () => {
   const fetchCandidates = async (
     page = 1, 
     status?: CandidateStatus,
-    stage?: CandidateStage
+    stage?: CandidateStage,
+    minMatch?: number,
+    maxMatch?: number
   ) => {
     if (!id) return;
     
@@ -83,10 +89,46 @@ const RecruitmentCandidates: React.FC = () => {
         page,
         limit: pagination.limit,
         status,
-        stage
+        stage,
+        minMatchScore: minMatch,
+        maxMatchScore: maxMatch,
+        sortBy,
+        sortOrder
       });
 
-      setCandidates(response.data);
+      // Apply client-side sorting if needed
+      let sortedCandidates = [...response.data];
+      
+      switch (sortBy) {
+        case 'matchScore':
+          sortedCandidates.sort((a, b) => {
+            const scoreA = a.assessment?.matchScore || 0;
+            const scoreB = b.assessment?.matchScore || 0;
+            return sortOrder === 'desc' ? scoreB - scoreA : scoreA - scoreB;
+          });
+          break;
+        case 'name':
+          sortedCandidates.sort((a, b) => {
+            const nameA = `${a.personalInfo.firstName} ${a.personalInfo.lastName}`;
+            const nameB = `${b.personalInfo.firstName} ${b.personalInfo.lastName}`;
+            return sortOrder === 'desc' ? nameB.localeCompare(nameA) : nameA.localeCompare(nameB);
+          });
+          break;
+        case 'status':
+          sortedCandidates.sort((a, b) => {
+            return sortOrder === 'desc' ? b.status.localeCompare(a.status) : a.status.localeCompare(b.status);
+          });
+          break;
+        case 'createdAt':
+          sortedCandidates.sort((a, b) => {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+          });
+          break;
+      }
+      
+      setCandidates(sortedCandidates);
       setPagination({
         page: response.pagination.current,
         limit: response.pagination.limit,
@@ -163,7 +205,7 @@ const RecruitmentCandidates: React.FC = () => {
       }
       
       // Refresh candidates list to revert optimistic update on error
-      await fetchCandidates(pagination.page, selectedStatus, selectedStage);
+      await fetchCandidates(pagination.page, selectedStatus, selectedStage, minMatchScore, maxMatchScore);
       
       throw error;
     } finally {
@@ -175,32 +217,54 @@ const RecruitmentCandidates: React.FC = () => {
   useEffect(() => {
     if (id) {
       fetchRecruitmentProcess();
-      fetchCandidates();
+      fetchCandidates(1, selectedStatus, selectedStage, minMatchScore, maxMatchScore);
     }
-  }, [id]);
+  }, [id, sortBy, sortOrder]);
 
   // Handle status filter change
   const handleStatusFilter = (status?: CandidateStatus) => {
     setSelectedStatus(status);
-    fetchCandidates(1, status, selectedStage);
+    fetchCandidates(1, status, selectedStage, minMatchScore, maxMatchScore);
   };
 
   // Handle stage filter change
   const handleStageFilter = (stage?: CandidateStage) => {
     setSelectedStage(stage);
-    fetchCandidates(1, selectedStatus, stage);
+    fetchCandidates(1, selectedStatus, stage, minMatchScore, maxMatchScore);
+  };
+
+  // Handle match score filter change
+  const handleMatchScoreFilter = (min?: number, max?: number) => {
+    setMinMatchScore(min);
+    setMaxMatchScore(max);
+    fetchCandidates(1, selectedStatus, selectedStage, min, max);
+  };
+
+  // Handle sorting change
+  const handleSortChange = (newSortBy: typeof sortBy, newSortOrder?: typeof sortOrder) => {
+    setSortBy(newSortBy);
+    if (newSortOrder) {
+      setSortOrder(newSortOrder);
+    } else {
+      // Toggle sort order if same field
+      setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+    }
   };
 
   // Clear all filters
   const handleClearFilters = () => {
     setSelectedStatus(undefined);
     setSelectedStage(undefined);
+    setMinMatchScore(undefined);
+    setMaxMatchScore(undefined);
+    setSortBy('matchScore');
+    setSortOrder('desc');
     fetchCandidates(1);
   };
 
   // Handle pagination
   const handlePageChange = (newPage: number) => {
-    fetchCandidates(newPage, selectedStatus, selectedStage);
+    fetchCandidates(newPage, selectedStatus, selectedStage, minMatchScore, maxMatchScore);
   };
 
   // Add candidates to recruitment process
@@ -227,7 +291,7 @@ const RecruitmentCandidates: React.FC = () => {
         
         // Refresh candidates list and metrics
         await Promise.all([
-          fetchCandidates(pagination.page, selectedStatus, selectedStage),
+          fetchCandidates(pagination.page, selectedStatus, selectedStage, minMatchScore, maxMatchScore),
           fetchRecruitmentProcess()
         ]);
       }
@@ -284,7 +348,7 @@ const RecruitmentCandidates: React.FC = () => {
       toast.error('Failed to update candidate status');
       
       // Refresh candidates to revert optimistic update
-      await fetchCandidates(pagination.page, selectedStatus, selectedStage);
+      await fetchCandidates(pagination.page, selectedStatus, selectedStage, minMatchScore, maxMatchScore);
     } finally {
       setLoading(prev => ({ ...prev, updating: false }));
     }
@@ -311,7 +375,7 @@ const RecruitmentCandidates: React.FC = () => {
       if (candidates.length === 1 && pagination.page > 1) {
         handlePageChange(pagination.page - 1);
       } else {
-        await fetchCandidates(pagination.page, selectedStatus, selectedStage);
+        await fetchCandidates(pagination.page, selectedStatus, selectedStage, minMatchScore, maxMatchScore);
       }
     } catch (error) {
       console.error('Error removing candidate:', error);
@@ -321,11 +385,16 @@ const RecruitmentCandidates: React.FC = () => {
     }
   };
 
+  // Handle pagination change
+  const handlePaginationChange = (newPage: number) => {
+    fetchCandidates(newPage, selectedStatus, selectedStage, minMatchScore, maxMatchScore);
+  };
+
   // Refresh all data
   const handleRefresh = async () => {
     await Promise.all([
       fetchRecruitmentProcess(),
-      fetchCandidates(pagination.page, selectedStatus, selectedStage)
+      fetchCandidates(pagination.page, selectedStatus, selectedStage, minMatchScore, maxMatchScore)
     ]);
   };
 
@@ -354,7 +423,15 @@ const RecruitmentCandidates: React.FC = () => {
   }
 
   // Check if any filters are active
-  const hasActiveFilters = selectedStatus || selectedStage;
+  const hasActiveFilters = selectedStatus || selectedStage || minMatchScore !== undefined || maxMatchScore !== undefined;
+
+  // Get match score color for display
+  const getMatchScoreColor = (score: number) => {
+    if (score >= 90) return 'text-green-600 bg-green-50';
+    if (score >= 80) return 'text-blue-600 bg-blue-50';
+    if (score >= 70) return 'text-yellow-600 bg-yellow-50';
+    return 'text-red-600 bg-red-50';
+  };
 
   return (
     <div>
@@ -426,16 +503,16 @@ const RecruitmentCandidates: React.FC = () => {
 
         {/* Filters Section */}
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             {/* Status Filter */}
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Status:
               </label>
               <select
                 value={selectedStatus || ''}
                 onChange={(e) => handleStatusFilter(e.target.value as CandidateStatus || undefined)}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[160px]"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Status</option>
                 {CANDIDATE_STATUS_OPTIONS.map((status) => (
@@ -446,6 +523,121 @@ const RecruitmentCandidates: React.FC = () => {
               </select>
             </div>
 
+            {/* Match Score Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Match Score Range:
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  placeholder="Min"
+                  min="0"
+                  max="100"
+                  value={minMatchScore || ''}
+                  onChange={(e) => {
+                    const value = e.target.value ? parseInt(e.target.value) : undefined;
+                    handleMatchScoreFilter(value, maxMatchScore);
+                  }}
+                  className="w-20 border border-gray-300 rounded-md px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <span className="text-gray-500">-</span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  min="0"
+                  max="100"
+                  value={maxMatchScore || ''}
+                  onChange={(e) => {
+                    const value = e.target.value ? parseInt(e.target.value) : undefined;
+                    handleMatchScoreFilter(minMatchScore, value);
+                  }}
+                  className="w-20 border border-gray-300 rounded-md px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <span className="text-gray-500 text-xs">%</span>
+              </div>
+            </div>
+
+            {/* Sort By */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sort By:
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => handleSortChange(e.target.value as typeof sortBy)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="matchScore">Match Score</option>
+                <option value="name">Name</option>
+                <option value="status">Status</option>
+                <option value="createdAt">Date Added</option>
+              </select>
+            </div>
+
+            {/* Sort Order */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Order:
+              </label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as typeof sortOrder)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="desc">Highest First</option>
+                <option value="asc">Lowest First</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Quick Match Score Filters */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <span className="text-sm font-medium text-gray-700">Quick filters:</span>
+            <button
+              onClick={() => handleMatchScoreFilter(90, undefined)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                minMatchScore === 90 && maxMatchScore === undefined
+                  ? 'bg-green-600 text-white'
+                  : 'bg-green-100 text-green-800 hover:bg-green-200'
+              }`}
+            >
+              Excellent (90%+)
+            </button>
+            <button
+              onClick={() => handleMatchScoreFilter(80, 89)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                minMatchScore === 80 && maxMatchScore === 89
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+              }`}
+            >
+              Good (80-89%)
+            </button>
+            <button
+              onClick={() => handleMatchScoreFilter(70, 79)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                minMatchScore === 70 && maxMatchScore === 79
+                  ? 'bg-yellow-600 text-white'
+                  : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+              }`}
+            >
+              Fair (70-79%)
+            </button>
+            <button
+              onClick={() => handleMatchScoreFilter(undefined, 69)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                minMatchScore === undefined && maxMatchScore === 69
+                  ? 'bg-red-600 text-white'
+                  : 'bg-red-100 text-red-800 hover:bg-red-200'
+              }`}
+            >
+              {'Low (<70%)'}
+            </button>
+          </div>
+
+          {/* Clear Filters and Results Summary */}
+          <div className="flex items-center justify-between">
             {/* Clear Filters Button */}
             {hasActiveFilters && (
               <button
@@ -454,6 +646,13 @@ const RecruitmentCandidates: React.FC = () => {
               >
                 Clear all filters
               </button>
+            )}
+            
+            {/* Match Statistics */}
+            {candidates.length > 0 && (
+              <div className="text-sm text-gray-600">
+                Average match: {Math.round(candidates.reduce((sum, c) => sum + (c.assessment?.matchScore || 0), 0) / candidates.length)}%
+              </div>
             )}
           </div>
 
@@ -482,16 +681,59 @@ const RecruitmentCandidates: React.FC = () => {
                   </button>
                 </span>
               )}
+              {(minMatchScore !== undefined || maxMatchScore !== undefined) && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                  Match: {minMatchScore || 0}% - {maxMatchScore || 100}%
+                  <button
+                    onClick={() => handleMatchScoreFilter(undefined, undefined)}
+                    className="ml-2 text-purple-600 hover:text-purple-800"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
             </div>
           )}
         </div>
 
-        {/* Results Summary */}
-        {hasActiveFilters && (
-          <div className="mb-4 text-sm text-gray-600">
-            Showing {pagination.total} candidate{pagination.total !== 1 ? 's' : ''} matching your filters
+        {/* Enhanced Results Summary */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {hasActiveFilters ? (
+              <>Showing {pagination.total} candidate{pagination.total !== 1 ? 's' : ''} matching your filters</>
+            ) : (
+              <>Total: {pagination.total} candidate{pagination.total !== 1 ? 's' : ''}</>
+            )}
           </div>
-        )}
+          
+          {/* Match Score Distribution */}
+          {candidates.length > 0 && (
+            <div className="flex items-center space-x-4 text-xs">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                <span>{candidates.filter(c => (c.assessment?.matchScore || 0) >= 90).length} Excellent</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                <span>{candidates.filter(c => {
+                  const score = c.assessment?.matchScore || 0;
+                  return score >= 80 && score < 90;
+                }).length} Good</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full mr-1"></div>
+                <span>{candidates.filter(c => {
+                  const score = c.assessment?.matchScore || 0;
+                  return score >= 70 && score < 80;
+                }).length} Fair</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                <span>{candidates.filter(c => (c.assessment?.matchScore || 0) < 70).length} Low</span>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Candidates List */}
         {loading.candidates ? (
@@ -513,30 +755,162 @@ const RecruitmentCandidates: React.FC = () => {
 
             {/* Pagination */}
             {pagination.total > pagination.limit && (
-              <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
-                <div className="text-sm text-gray-700">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} candidates
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                {/* Results Summary */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-sm text-gray-700">
+                    Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                    {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                    {pagination.total} candidates
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Page {pagination.page} of {Math.ceil(pagination.total / pagination.limit)}
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
+
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-center space-x-2">
+                  {/* First Page */}
                   <button
-                    onClick={() => handlePageChange(pagination.page - 1)}
+                    onClick={() => handlePaginationChange(1)}
+                    disabled={pagination.page === 1 || loading.candidates}
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    First
+                  </button>
+
+                  {/* Previous Page */}
+                  <button
+                    onClick={() => handlePaginationChange(pagination.page - 1)}
                     disabled={!pagination.hasPrevious || loading.candidates}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Previous
                   </button>
-                  <span className="text-sm text-gray-700">
-                    Page {pagination.page} of {Math.ceil(pagination.total / pagination.limit)}
-                  </span>
+
+                  {/* Page Numbers */}
+                  {(() => {
+                    const totalPages = Math.ceil(pagination.total / pagination.limit);
+                    const currentPage = pagination.page;
+                    const pages = [];
+                    
+                    // Calculate page range to show
+                    let startPage = Math.max(1, currentPage - 2);
+                    let endPage = Math.min(totalPages, currentPage + 2);
+                    
+                    // Adjust range if we're near the beginning or end
+                    if (endPage - startPage < 4) {
+                      if (startPage === 1) {
+                        endPage = Math.min(totalPages, startPage + 4);
+                      } else if (endPage === totalPages) {
+                        startPage = Math.max(1, endPage - 4);
+                      }
+                    }
+
+                    // Add ellipsis at the beginning if needed
+                    if (startPage > 1) {
+                      pages.push(
+                        <button
+                          key={1}
+                          onClick={() => handlePaginationChange(1)}
+                          disabled={loading.candidates}
+                          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          1
+                        </button>
+                      );
+                      
+                      if (startPage > 2) {
+                        pages.push(
+                          <span key="ellipsis-start" className="px-2 py-2 text-sm text-gray-500">
+                            ...
+                          </span>
+                        );
+                      }
+                    }
+
+                    // Add page numbers in range
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => handlePaginationChange(i)}
+                          disabled={loading.candidates}
+                          className={`px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                            i === currentPage
+                              ? 'bg-blue-600 text-white border border-blue-600'
+                              : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+
+                    // Add ellipsis at the end if needed
+                    if (endPage < totalPages) {
+                      if (endPage < totalPages - 1) {
+                        pages.push(
+                          <span key="ellipsis-end" className="px-2 py-2 text-sm text-gray-500">
+                            ...
+                          </span>
+                        );
+                      }
+                      
+                      pages.push(
+                        <button
+                          key={totalPages}
+                          onClick={() => handlePaginationChange(totalPages)}
+                          disabled={loading.candidates}
+                          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {totalPages}
+                        </button>
+                      );
+                    }
+
+                    return pages;
+                  })()}
+
+                  {/* Next Page */}
                   <button
-                    onClick={() => handlePageChange(pagination.page + 1)}
+                    onClick={() => handlePaginationChange(pagination.page + 1)}
                     disabled={!pagination.hasNext || loading.candidates}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Next
                   </button>
+
+                  {/* Last Page */}
+                  <button
+                    onClick={() => handlePaginationChange(Math.ceil(pagination.total / pagination.limit))}
+                    disabled={pagination.page === Math.ceil(pagination.total / pagination.limit) || loading.candidates}
+                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Last
+                  </button>
+                </div>
+
+                {/* Items per page selector */}
+                <div className="text-sm text-gray-700">
+                  <div className="flex items-center justify-center mt-4">
+                    <label className="text-sm text-gray-600 mr-2">Items per page:</label>
+                    <select
+                      value={pagination.limit}
+                      onChange={(e) => {
+                        const newLimit = parseInt(e.target.value);
+                        setPagination(prev => ({ ...prev, limit: newLimit, page: 1 }));
+                        fetchCandidates(1, selectedStatus, selectedStage, minMatchScore, maxMatchScore);
+                      }}
+                      disabled={loading.candidates}
+                      className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                    >
+                      <option value="10">10</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             )}

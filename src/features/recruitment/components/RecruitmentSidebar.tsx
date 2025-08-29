@@ -11,10 +11,10 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { LoadingButton } from '../../../shared/components/LoadingButton';
+import { LoadingButton } from './LoadingButton';
 import { RecruitmentProcess } from '../types/recruitment';
 import { getCandidateQualityIndicator, getRecruitmentHealthScore } from '../utils/recruitmentUtils';
-import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../../../shared/utils/loadingKeys';
+import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../utils/loadingKeys';
 
 interface RecruitmentSidebarProps {
   recruitment: RecruitmentProcess;

@@ -1,850 +1,522 @@
 import { toast } from 'react-hot-toast';
-import { BaseService } from '../../../shared/lib/api/baseService';
-import { httpClient } from '../../../shared/lib/api/httpClient';
 import {
-  AssociateCandidatesRequest,
-  AssociateCandidatesResponse,
-  AssociateRecruiterRequest,
+  RecruitmentProcess,
+  RecruitmentStatus,
+  RecruitmentListParams,
   Candidate,
   CandidateFilterParams,
   CandidateListResponse,
-  CandidateStatus,
   CandidateStatusUpdateRequest,
-  CreatePublicationRequest,
-  CreateRecruiterRequest,
-  CreateRecruitmentRequest,
   Publication,
   PublicationFilterParams,
   PublicationListResponse,
   Recruiter,
-  RecruiterAssociationResponse,
   RecruiterFilterParams,
   RecruiterListResponse,
-  RecruitmentListParams,
-  RecruitmentMetrics,
-  RecruitmentProcess,
-  RecruitmentStatus,
-  RecruitmentSummaryStats,
-  RecruitmentTimeline,
-  UpdatePublicationRequest,
   UpdateRecruitmentRequest,
-  UpdateStatusRequest
+  CreatePublicationRequest,
+  UpdatePublicationRequest,
+  AssociateCandidatesRequest,
+  AssociateCandidatesResponse,
+  CandidateEmailUpdateRequest,
+  CandidateEmailUpdateData
 } from '../types/recruitment';
-import { CandidateEmailUpdateData, CandidateEmailUpdateRequest } from '../types/candidate';
+import { 
+  mockRecruitmentProcesses, 
+  mockRecruiters, 
+  mockCandidates,
+  generateMockCandidate,
+  generateMockPublication
+} from './dummyData';
 
 /**
- * Servicio de Recruitment que extiende BaseService
- * Proporciona operaciones especÃ­ficas para el manejo de procesos de reclutamiento
+ * Dummy Recruitment Service
+ * Simulates API calls with mock data for development
  */
-class RecruitmentService extends BaseService<
-  RecruitmentProcess,
-  CreateRecruitmentRequest,
-  Partial<RecruitmentProcess>
-> {
-  constructor() {
-    super({
-      baseUrl: import.meta.env.VITE_RECRUITMENT_API_URL || import.meta.env.VITE_API_URL,
-      resourceName: 'recruitments',
-      requireAuth: true,
-      requiredRoles: ['recruiter-supervisor', 'recruiter'], // Roles requeridos para acceder al servicio
-      requireAllRoles: false // Solo necesita uno de los roles
-    });
+class RecruitmentService {
+  private processes: RecruitmentProcess[] = [...mockRecruitmentProcesses];
+  private recruiters: Recruiter[] = [...mockRecruiters];
+
+  // Simulate API delay
+  private delay(ms: number = 500): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // ==================== MÃ©todos especÃ­ficos de Recruitment ====================
+  // ==================== Core CRUD Operations ====================
 
-  /**
-   * Actualizar el estado de un proceso de reclutamiento
-   */
-  async updateStatus(id: string, request: UpdateStatusRequest): Promise<RecruitmentProcess> {
-    try {
-      const data = await this.customOperation<RecruitmentProcess>(
-        id,
-        'status',
-        request,
-        'PATCH'
+  async list(params?: RecruitmentListParams) {
+    await this.delay();
+    
+    let filteredProcesses = [...this.processes];
+    
+    // Filter by status
+    if (params?.status) {
+      filteredProcesses = filteredProcesses.filter(p => p.status === params.status);
+    }
+    
+    // Filter by department
+    if (params?.department) {
+      filteredProcesses = filteredProcesses.filter(p => 
+        p.requirement.department.toLowerCase().includes(params.department!.toLowerCase())
       );
-      toast.success(`Recruitment status updated to ${request.status}`);
-      return data;
-    } catch (error: any) {
-      this.handleError(error, 'update recruitment status');
     }
-  }
-
-  /**
-   * Obtener mÃ©tricas detalladas de un proceso de reclutamiento
-   */
-  async getMetrics(id: string): Promise<RecruitmentMetrics> {
-    return this.customOperation<RecruitmentMetrics>(id, 'metrics', undefined, 'GET');
-  }
-
-  /**
-   * Obtener timeline de un proceso de reclutamiento
-   */
-  async getTimeline(id: string): Promise<RecruitmentTimeline> {
-    return this.customOperation<RecruitmentTimeline>(id, 'timeline', undefined, 'GET');
-  }
-
-  // ==================== GestiÃ³n de Candidatos ====================
-
-  /**
-   * Obtener candidatos de un proceso de reclutamiento
-   */
-  async getCandidates(
-    id: string,
-    params?: CandidateFilterParams
-  ): Promise<CandidateListResponse> {
-    await this.validateAuth();
-
-    try {
-      const queryParams = {
-        ...params,
-        page: params?.page || 1,
-        limit: params?.limit || 20
-      };
-
-      const response = await httpClient.get(`${this.buildUrl(id)}/candidates`, {
-        params: queryParams
+    
+    // Sort
+    if (params?.sortBy) {
+      filteredProcesses.sort((a, b) => {
+        const aValue = params.sortBy === 'createdAt' ? a.createdAt : 
+                      params.sortBy === 'title' ? a.requirement.title : a.updatedAt;
+        const bValue = params.sortBy === 'createdAt' ? b.createdAt : 
+                      params.sortBy === 'title' ? b.requirement.title : b.updatedAt;
+        
+        if (params.sortOrder === 'desc') {
+          return bValue.localeCompare(aValue);
+        }
+        return aValue.localeCompare(bValue);
       });
-
-      return response.data;
-    } catch (error: any) {
-      this.handleError(error, 'fetch recruitment candidates');
     }
+    
+    // Pagination
+    const page = params?.page || 1;
+    const limit = params?.limit || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedProcesses = filteredProcesses.slice(startIndex, endIndex);
+    
+    return {
+      data: paginatedProcesses,
+      pagination: {
+        current: page,
+        limit,
+        total: filteredProcesses.length,
+        pages: Math.ceil(filteredProcesses.length / limit),
+        hasNext: endIndex < filteredProcesses.length,
+        hasPrevious: page > 1
+      }
+    };
   }
 
-  /**
-   * Obtener detalles de un candidato en el contexto del proceso de reclutamiento
-   */
+  async get(id: string): Promise<RecruitmentProcess> {
+    await this.delay();
+    
+    const process = this.processes.find(p => p.id === id);
+    if (!process) {
+      throw new Error('Recruitment process not found');
+    }
+    
+    return process;
+  }
+
+  async create(data: any): Promise<RecruitmentProcess> {
+    await this.delay(800);
+    
+    const newProcess: RecruitmentProcess = {
+      id: `rec-proc-${Date.now()}`,
+      requirement: {
+        id: `req-${Date.now()}`,
+        title: data.title || 'New Position',
+        department: data.department || 'Technology',
+        priority: data.priority || 'Medium',
+        timeframe: data.urgency || '1-2 months',
+        experienceLevel: data.experienceLevel || 'Mid',
+        workType: data.workType || 'Remote',
+        employmentType: data.employmentType || 'Full-time',
+        salaryMin: parseFloat(data.salaryMin) || 5000,
+        salaryMax: parseFloat(data.salaryMax) || 8000,
+        salaryCurrency: data.salaryCurrency || 'PEN',
+        skills: data.skills || [],
+        softSkills: data.softSkills || [],
+        description: data.description || 'Job description...',
+        status: 'Active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        expectedStartDate: data.expectedStartDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      },
+      candidates: [],
+      publications: [],
+      status: 'Active',
+      metrics: {
+        totalCandidates: 0,
+        qualifiedCandidates: 0,
+        interviewsScheduled: 0,
+        offersExtended: 0,
+        offerAcceptanceRate: 0,
+        timeToHire: 0,
+        costPerHire: 0
+      },
+      timeline: {
+        created: new Date().toISOString()
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      recruiterId: data.recruiterId || '',
+      recruiterName: this.recruiters.find(r => r.id === data.recruiterId)?.name || '',
+      recruiterEmail: this.recruiters.find(r => r.id === data.recruiterId)?.email || '',
+      positionsCount: parseInt(data.positionsCount) || 1
+    };
+    
+    this.processes.unshift(newProcess);
+    return newProcess;
+  }
+
+  async updateRecruitmentProcess(id: string, data: UpdateRecruitmentRequest): Promise<RecruitmentProcess> {
+    await this.delay();
+    
+    const processIndex = this.processes.findIndex(p => p.id === id);
+    if (processIndex === -1) {
+      throw new Error('Recruitment process not found');
+    }
+    
+    const process = this.processes[processIndex];
+    
+    // Update requirement fields
+    if (data.title) process.requirement.title = data.title;
+    if (data.department) process.requirement.department = data.department;
+    if (data.workType) process.requirement.workType = data.workType;
+    if (data.employmentType) process.requirement.employmentType = data.employmentType;
+    if (data.priority) process.requirement.priority = data.priority;
+    if (data.expectedStartDate) process.requirement.expectedStartDate = data.expectedStartDate;
+    if (data.experienceLevel) process.requirement.experienceLevel = data.experienceLevel;
+    if (data.budgetMin) process.requirement.salaryMin = data.budgetMin;
+    if (data.budgetMax) process.requirement.salaryMax = data.budgetMax;
+    if (data.currency) process.requirement.salaryCurrency = data.currency;
+    if (data.urgency) process.requirement.timeframe = data.urgency;
+    if (data.technicalSkills) process.requirement.skills = data.technicalSkills;
+    if (data.softSkills) process.requirement.softSkills = data.softSkills;
+    if (data.description) process.requirement.description = data.description;
+    if (data.recruiterId) {
+      process.recruiterId = data.recruiterId;
+      const recruiter = this.recruiters.find(r => r.id === data.recruiterId);
+      if (recruiter) {
+        process.recruiterName = recruiter.name;
+        process.recruiterEmail = recruiter.email;
+      }
+    }
+    
+    process.updatedAt = new Date().toISOString();
+    
+    this.processes[processIndex] = process;
+    return process;
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.delay();
+    
+    const processIndex = this.processes.findIndex(p => p.id === id);
+    if (processIndex === -1) {
+      throw new Error('Recruitment process not found');
+    }
+    
+    this.processes.splice(processIndex, 1);
+  }
+
+  // ==================== Status Management ====================
+
+  async setStatus(id: string, status: RecruitmentStatus, reason?: string): Promise<RecruitmentProcess> {
+    await this.delay();
+    
+    const processIndex = this.processes.findIndex(p => p.id === id);
+    if (processIndex === -1) {
+      throw new Error('Recruitment process not found');
+    }
+    
+    this.processes[processIndex].status = status;
+    this.processes[processIndex].updatedAt = new Date().toISOString();
+    
+    return this.processes[processIndex];
+  }
+
+  // ==================== Candidates Management ====================
+
+  async getCandidates(id: string, params?: CandidateFilterParams): Promise<CandidateListResponse> {
+    await this.delay();
+    
+    const process = this.processes.find(p => p.id === id);
+    if (!process) {
+      throw new Error('Recruitment process not found');
+    }
+    
+    let candidates = [...process.candidates];
+    
+    // Filter by status
+    if (params?.status) {
+      candidates = candidates.filter(c => c.status === params.status);
+    }
+    
+    // Pagination
+    const page = params?.page || 1;
+    const limit = params?.limit || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedCandidates = candidates.slice(startIndex, endIndex);
+    
+    return {
+      data: paginatedCandidates,
+      pagination: {
+        current: page,
+        limit,
+        total: candidates.length,
+        pages: Math.ceil(candidates.length / limit),
+        hasNext: endIndex < candidates.length,
+        hasPrevious: page > 1
+      }
+    };
+  }
+
   async getCandidate(id: string, candidateId: string): Promise<Candidate> {
-    await this.validateAuth();
-
-    try {
-      const response = await httpClient.get(`${this.buildUrl(id)}/candidate/${candidateId}`);
-      return response.data;
-    } catch (error: any) {
-      this.handleError(error, 'fetch candidate details');
+    await this.delay();
+    
+    const process = this.processes.find(p => p.id === id);
+    if (!process) {
+      throw new Error('Recruitment process not found');
     }
+    
+    const candidate = process.candidates.find(c => c.id === candidateId);
+    if (!candidate) {
+      throw new Error('Candidate not found');
+    }
+    
+    return candidate;
   }
 
-  /**
-   * Remover candidato de un proceso de reclutamiento
-   */
-  async removeCandidate(id: string, candidateId: string): Promise<void> {
-    await this.validateAuth();
-
-    try {
-      await httpClient.delete(`${this.buildUrl(id)}/candidate/${candidateId}`);
-      toast.success('Candidate removed from recruitment process');
-    } catch (error: any) {
-      this.handleError(error, 'remove candidate');
+  async associateCandidates(id: string, request: AssociateCandidatesRequest): Promise<AssociateCandidatesResponse> {
+    await this.delay(1000);
+    
+    const processIndex = this.processes.findIndex(p => p.id === id);
+    if (processIndex === -1) {
+      throw new Error('Recruitment process not found');
     }
+    
+    const newCandidate = generateMockCandidate({
+      personalInfo: {
+        firstName: request.profileName.split(' ')[0] || 'Nuevo',
+        lastName: request.profileName.split(' ')[1] || 'Candidato',
+        location: {
+          city: request.profileLocation?.split(',')[0] || 'Lima',
+          country: 'Peru'
+        }
+      },
+      contact: {
+        email: request.profileEmail || `${request.profileName.toLowerCase().replace(' ', '.')}@email.com`,
+        linkedin: request.profileLink
+      },
+      profile: {
+        summary: request.profileSummary || 'Candidato interesado en la posición'
+      }
+    });
+    
+    this.processes[processIndex].candidates.push(newCandidate);
+    this.processes[processIndex].metrics.totalCandidates += 1;
+    this.processes[processIndex].metrics.qualifiedCandidates += Math.random() > 0.5 ? 1 : 0;
+    
+    return {
+      id: newCandidate.id,
+      recruitmentCandidateId: `rc-${Date.now()}`,
+      candidateNumber: `CN-${String(this.processes[processIndex].candidates.length).padStart(4, '0')}`,
+      firstName: newCandidate.personalInfo.firstName,
+      lastName: newCandidate.personalInfo.lastName,
+      email: newCandidate.contact.email,
+      position: this.processes[processIndex].requirement.title,
+      department: this.processes[processIndex].requirement.department,
+      summary: newCandidate.profile?.summary,
+      city: newCandidate.personalInfo.location?.city,
+      country: newCandidate.personalInfo.location?.country,
+      linkedinUrl: newCandidate.contact.linkedin,
+      statusId: 1,
+      stageId: 1,
+      createdAt: new Date().toISOString()
+    };
   }
 
-  /**
-   * Actualizar estado de un candidato en el proceso de reclutamiento
-   */
   async updateCandidateStatus(
     id: string,
     candidateId: string,
     request: CandidateStatusUpdateRequest
   ): Promise<Candidate> {
-    await this.validateAuth();
-
-    try {
-      const response = await httpClient.patch(
-        `${this.buildUrl(id)}/candidate/${candidateId}/status`,
-        request
-      );
-      toast.success(`Candidate status updated to ${request.status}`);
-      return response.data;
-    } catch (error: any) {
-      this.handleError(error, 'update candidate status');
-    }
-  }
-
-  // ==================== Gestión de Publicaciones ====================
-
-  /**
-   * Obtener publicaciones de un proceso de reclutamiento
-   */
-  async getPublications(
-    id: string,
-    params?: PublicationFilterParams
-  ): Promise<PublicationListResponse> {
-    await this.validateAuth();
-
-    try {
-      const queryParams = {
-        ...params,
-        page: params?.page || 1,
-        limit: params?.limit || 20
-      };
-
-      const response = await httpClient.get(`${this.buildUrl(id)}/publications`, {
-        params: queryParams
-      });
-
-      return response.data;
-    } catch (error: any) {
-      this.handleError(error, 'fetch recruitment publications');
-    }
-  }
-
-  /**
-   * Crear una nueva publicación para el proceso de reclutamiento
-   */
-  async createPublication(
-    id: string,
-    request: CreatePublicationRequest
-  ): Promise<Publication> {
-    try {
-      const data = await this.customOperation<Publication>(
-        id,
-        'publications',
-        request,
-        'POST'
-      );
-      toast.success('Publication created successfully');
-      return data;
-    } catch (error: any) {
-      this.handleError(error, 'create publication');
-    }
-  }
-
-  /**
-   * Obtener una publicación específica
-   */
-  async getPublication(id: string, publicationId: string): Promise<Publication> {
-    await this.validateAuth();
-
-    try {
-      const response = await httpClient.get(`${this.buildUrl(id)}/publications/${publicationId}`);
-      return response.data;
-    } catch (error: any) {
-      this.handleError(error, 'fetch publication details');
-    }
-  }
-
-  /**
-   * Actualizar una publicación existente
-   */
-  async updatePublication(
-    id: string,
-    publicationId: string,
-    request: UpdatePublicationRequest
-  ): Promise<Publication> {
-    await this.validateAuth();
-
-    try {
-      const response = await httpClient.put(
-        `${this.buildUrl(id)}/publications/${publicationId}`,
-        request
-      );
-      toast.success('Publication updated successfully');
-      return response.data;
-    } catch (error: any) {
-      this.handleError(error, 'update publication');
-    }
-  }
-
-  /**
-   * Eliminar una publicación
-   */
-  async deletePublication(id: string, publicationId: string): Promise<void> {
-    await this.validateAuth();
-
-    try {
-      await httpClient.delete(`${this.buildUrl(id)}/publications/${publicationId}`);
-      toast.success('Publication deleted successfully');
-    } catch (error: any) {
-      this.handleError(error, 'delete publication');
-    }
-  }
-
-  // ==================== Gestión de Reclutadores ====================
-
-  /**
-   * Obtener reclutadores disponibles
-   */
-  async getAvailableRecruiters(params?: RecruiterFilterParams): Promise<RecruiterListResponse> {
-    await this.validateAuth();
-
-    try {
-      const queryParams = {
-        ...params,
-        page: params?.page || 1,
-        limit: params?.limit || 20
-      };
-
-      const response = await httpClient.get(
-        `${this.baseUrl}/recruitments/recruiters`,
-        { params: queryParams }
-      );
-
-      return response.data;
-    } catch (error: any) {
-      this.handleError(error, 'fetch available recruiters');
-    }
-  }
-
-  /**
-   * Crear un nuevo reclutador
-   */
-  async createRecruiter(request: CreateRecruiterRequest): Promise<Recruiter> {
-    await this.validateAuth();
-
-    try {
-      const response = await httpClient.post(
-        `${this.baseUrl}/recruitments/recruiters`,
-        request
-      );
-      toast.success(`Recruiter ${request.name} created successfully`);
-      return response.data;
-    } catch (error: any) {
-      this.handleError(error, 'create recruiter');
-    }
-  }
-
-  /**
-   * Asociar un reclutador a un proceso de reclutamiento
-   */
-  async associateRecruiter(
-    id: string,
-    request: AssociateRecruiterRequest
-  ): Promise<RecruiterAssociationResponse> {
-    try {
-      const data = await this.customOperation<RecruiterAssociationResponse>(
-        id,
-        'recruiters',
-        request,
-        'POST'
-      );
-      toast.success('Recruiter associated successfully');
-      return data;
-    } catch (error: any) {
-      this.handleError(error, 'associate recruiter');
-    }
-  }
-
-  // ==================== MÃ©todos de conveniencia ====================
-
-  /**
-   * Crear proceso de reclutamiento desde un requirement ID
-   */
-  async createFromRequirement(requirementId: string): Promise<RecruitmentProcess> {
-    return this.create({ requirementId });
-  }
-
-  /**
-   * Actualizar estado simplificado (compatibilidad hacia atrÃ¡s)
-   */
-  async setStatus(
-    id: string,
-    status: RecruitmentStatus,
-    reason?: string
-  ): Promise<RecruitmentProcess> {
-    return this.updateStatus(id, { status, reason });
-  }
-
-  /**
-   * Obtener procesos filtrados por estado
-   */
-  async getByStatus(status: RecruitmentStatus): Promise<RecruitmentProcess[]> {
-    const response = await this.list({ status } as RecruitmentListParams);
-    return response.data;
-  }
-
-  /**
-   * Obtener procesos activos
-   */
-  async getActive(): Promise<RecruitmentProcess[]> {
-    return this.getByStatus('Active');
-  }
-
-  /**
-   * Obtener procesos completados
-   */
-  async getCompleted(): Promise<RecruitmentProcess[]> {
-    return this.getByStatus('Completed');
-  }
-
-  /**
- * Actualizar proceso de reclutamiento (PATCH operation)
- */
-  async updateRecruitmentProcess(
-    id: string, 
-    request: UpdateRecruitmentRequest
-  ): Promise<RecruitmentProcess> {
-    await this.validateAuth();
-
-    try {
-      const response = await httpClient.patch(`${this.buildUrl(id)}`, request);
-      toast.success('Recruitment process updated successfully');
-      return response.data;
-    } catch (error: any) {
-      this.handleError(error, 'update recruitment process');
-    }
-  }
-
-  /**
-   * Obtener procesos por departamento
-   */
-  async getByDepartment(department: string): Promise<RecruitmentProcess[]> {
-    const response = await this.list({ department } as RecruitmentListParams);
-    return response.data;
-  }
-
-  // ==================== MÃ©todos de control de estado ====================
-
-  /**
-   * Pausar proceso de reclutamiento
-   */
-  async pause(id: string, reason?: string): Promise<RecruitmentProcess> {
-    return this.updateStatus(id, { status: 'Paused', reason });
-  }
-
-  /**
-   * Reanudar proceso de reclutamiento
-   */
-  async resume(id: string, reason?: string): Promise<RecruitmentProcess> {
-    return this.updateStatus(id, { status: 'Active', reason });
-  }
-
-  /**
-   * Completar proceso de reclutamiento
-   */
-  async complete(id: string, reason?: string): Promise<RecruitmentProcess> {
-    return this.updateStatus(id, { status: 'Completed', reason });
-  }
-
-  /**
-   * Cancelar proceso de reclutamiento
-   */
-  async cancel(id: string, reason?: string): Promise<RecruitmentProcess> {
-    return this.updateStatus(id, { status: 'Cancelled', reason });
-  }
-
-  // ==================== MÃ©todos de candidatos simplificados ====================
-
-  /**
-   * Asociar un solo candidato por profileLink
-   */
-  async associateCandidate(
-    id: string,
-    profileLink: string,
-    profileName: string,
-    additionalData?: Partial<AssociateCandidatesRequest>
-  ): Promise<AssociateCandidatesResponse> {
-    return this.associateCandidates(id, { 
-      profileLink, 
-      profileName,
-      ...additionalData 
-    });
-  }
-
-  /**
- * Asociar candidato a un proceso de reclutamiento (actualizado según Swagger)
- */
-  async associateCandidates(
-    id: string,
-    request: AssociateCandidatesRequest
-  ): Promise<AssociateCandidatesResponse> {
-    try {
-      const data = await this.customOperation<AssociateCandidatesResponse>(
-        id,
-        'candidates',
-        request,
-        'POST'
-      );
-
-      toast.success(`Successfully created candidate: ${data.firstName} ${data.lastName}`);
-      return data;
-    } catch (error: any) {
-      this.handleError(error, 'associate candidate');
-    }
-  }
-
-  /**
-   * Obtener candidatos por estado
-   */
-  async getCandidatesByStatus(id: string, status: CandidateStatus): Promise<Candidate[]> {
-    const response = await this.getCandidates(id, { status });
-    return response.data;
-  }
-
-  /**
-   * Obtener informaciÃ³n completa del proceso (proceso + mÃ©tricas + timeline)
-   */
-  async getFullDetails(id: string): Promise<{
-    process: RecruitmentProcess;
-    metrics: RecruitmentMetrics;
-    timeline: RecruitmentTimeline;
-  }> {
-    await this.validateAuth();
-
-    try {
-      const [process, metrics, timeline] = await Promise.all([
-        this.get(id),
-        this.getMetrics(id),
-        this.getTimeline(id)
-      ]);
-
-      return { process, metrics, timeline };
-    } catch (error: any) {
-      this.handleError(error, 'fetch full recruitment details');
-    }
-  }
-
-  // ==================== Métodos de publicaciones simplificados ====================
-
-  /**
-   * Crear publicación en LinkedIn
-   */
-  async publishToLinkedIn(
-    id: string,
-    params: Omit<CreatePublicationRequest, 'platform'>
-  ): Promise<Publication> {
-    return this.createPublication(id, {
-      platform: 'LinkedIn',
-      ...params
-    });
-  }
-
-  /**
-   * Crear publicación en Indeed
-   */
-  async publishToIndeed(
-    id: string,
-    params: Omit<CreatePublicationRequest, 'platform'>
-  ): Promise<Publication> {
-    return this.createPublication(id, {
-      platform: 'Indeed',
-      ...params
-    });
-  }
-
-  /**
-   * Crear publicación en Computrabajo
-   */
-  async publishToComputrabajo(
-    id: string,
-    params: Omit<CreatePublicationRequest, 'platform'>
-  ): Promise<Publication> {
-    return this.createPublication(id, {
-      platform: 'Computrabajo',
-      ...params
-    });
-  }
-
-  /**
-   * Obtener publicaciones por plataforma
-   */
-  async getPublicationsByPlatform(
-    id: string,
-    platform: 'LinkedIn' | 'Computrabajo' | 'Indeed' | 'Glassdoor' | 'CompanyWebsite' | 'Other'
-  ): Promise<Publication[]> {
-    const response = await this.getPublications(id, { platform });
-    return response.data;
-  }
-
-  /**
-   * Obtener publicaciones activas
-   */
-  async getActivePublications(id: string): Promise<Publication[]> {
-    const response = await this.getPublications(id, { status: 'Published' });
-    return response.data;
-  }
-
-  /**
-   * Suspender una publicación
-   */
-  async suspendPublication(id: string, publicationId: string): Promise<Publication> {
-    return this.updatePublication(id, publicationId, { status: 'Suspended' });
-  }
-
-  /**
-   * Reactivar una publicación suspendida
-   */
-  async reactivatePublication(id: string, publicationId: string): Promise<Publication> {
-    return this.updatePublication(id, publicationId, { status: 'Published' });
-  }
-
-  /**
-   * Archivar una publicación
-   */
-  async archivePublication(id: string, publicationId: string): Promise<Publication> {
-    return this.updatePublication(id, publicationId, { status: 'Archived' });
-  }
-
-  // ==================== Operaciones en lote ====================
-
-  /**
-   * ActualizaciÃ³n masiva de estados de candidatos
-   */
-  async bulkUpdateCandidateStatus(
-    id: string,
-    candidateUpdates: Array<{
-      candidateId: string;
-      status: CandidateStatus;
-      reason?: string;
-      notes?: string;
-    }>
-  ): Promise<Array<{ candidateId: string; success: boolean; data?: Candidate; error?: string }>> {
-    const results = await Promise.allSettled(
-      candidateUpdates.map(async (update) => {
-        try {
-          const data = await this.updateCandidateStatus(
-            id,
-            update.candidateId,
-            {
-              status: update.status,
-              reason: update.reason,
-              notes: update.notes
-            }
-          );
-          return { candidateId: update.candidateId, success: true, data };
-        } catch (error: any) {
-          return {
-            candidateId: update.candidateId,
-            success: false,
-            error: error.response?.data?.message || 'Update failed'
-          };
-        }
-      })
-    );
-
-    return results.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      } else {
-        return {
-          candidateId: candidateUpdates[index].candidateId,
-          success: false,
-          error: 'Promise rejected'
-        };
-      }
-    });
-  }
-
-  /**
-   * RemociÃ³n masiva de candidatos
-   */
-  async bulkRemoveCandidates(
-    id: string,
-    candidateIds: string[]
-  ): Promise<Array<{ candidateId: string; success: boolean; error?: string }>> {
-    const results = await Promise.allSettled(
-      candidateIds.map(async (candidateId) => {
-        try {
-          await this.removeCandidate(id, candidateId);
-          return { candidateId, success: true };
-        } catch (error: any) {
-          return {
-            candidateId,
-            success: false,
-            error: error.response?.data?.message || 'Removal failed'
-          };
-        }
-      })
-    );
-
-    return results.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      } else {
-        return {
-          candidateId: candidateIds[index],
-          success: false,
-          error: 'Promise rejected'
-        };
-      }
-    });
-  }
-
-  /**
-   * Actualización masiva de métricas de publicaciones
-   */
-  async bulkUpdatePublicationMetrics(
-    id: string,
-    updates: Array<{
-      publicationId: string;
-      views?: number;
-      applications?: number;
-      likes?: number;
-      shares?: number;
-      clicks?: number;
-      comments?: number;
-    }>
-  ): Promise<Array<{ publicationId: string; success: boolean; data?: Publication; error?: string }>> {
-    const results = await Promise.allSettled(
-      updates.map(async (update) => {
-        try {
-          const { publicationId, ...metrics } = update;
-          const data = await this.updatePublication(id, publicationId, metrics);
-          return { publicationId, success: true, data };
-        } catch (error: any) {
-          return {
-            publicationId: update.publicationId,
-            success: false,
-            error: error.response?.data?.message || 'Update failed'
-          };
-        }
-      })
-    );
-
-    return results.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      } else {
-        return {
-          publicationId: updates[index].publicationId,
-          success: false,
-          error: 'Promise rejected'
-        };
-      }
-    });
-  }
-
-  /**
-   * Suspender múltiples publicaciones
-   */
-  async bulkSuspendPublications(
-    id: string,
-    publicationIds: string[]
-  ): Promise<Array<{ publicationId: string; success: boolean; error?: string }>> {
-    const results = await Promise.allSettled(
-      publicationIds.map(async (publicationId) => {
-        try {
-          await this.suspendPublication(id, publicationId);
-          return { publicationId, success: true };
-        } catch (error: any) {
-          return {
-            publicationId,
-            success: false,
-            error: error.response?.data?.message || 'Suspension failed'
-          };
-        }
-      })
-    );
-
-    return results.map((result, index) => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      } else {
-        return {
-          publicationId: publicationIds[index],
-          success: false,
-          error: 'Promise rejected'
-        };
-      }
-    });
-  }
-
-  // ==================== EstadÃ­sticas y reportes ====================
-
-  /**
-   * Obtener estadÃ­sticas resumidas de todos los procesos
-   */
-  async getSummaryStats(params?: Partial<RecruitmentListParams>): Promise<RecruitmentSummaryStats> {
-    await this.validateAuth();
-
-    try {
-      const response = await this.list({ ...params, limit: 100 } as RecruitmentListParams);
-      const processes = response.data;
-
-      const stats: RecruitmentSummaryStats = {
-        total: response.pagination.total,
-        active: processes.filter(p => p.status === 'Active').length,
-        completed: processes.filter(p => p.status === 'Completed').length,
-        paused: processes.filter(p => p.status === 'Paused').length,
-        cancelled: processes.filter(p => p.status === 'Cancelled').length,
-        totalCandidates: processes.reduce((sum, p) => sum + p.metrics.totalCandidates, 0),
-        avgTimeToHire: processes.length > 0 
-          ? processes.reduce((sum, p) => sum + p.metrics.timeToHire, 0) / processes.length 
-          : 0
-      };
-
-      return stats;
-    } catch (error: any) {
-      this.handleError(error, 'fetch summary stats');
-    }
-  }
-
-  // ==================== MÃ©todos especÃ­ficos con permisos ====================
-
-  /**
-   * MÃ©todos que requieren permisos especÃ­ficos de manager
-   */
-  async deleteProcess(id: string): Promise<void> {
-    // Verificar que tenga permisos de manager para eliminar
-    if (!this.hasRole('hr-manager')) {
-      toast.error('Solo los managers pueden eliminar procesos de reclutamiento');
-      throw new Error('Insufficient permissions to delete recruitment process');
+    await this.delay();
+    
+    const processIndex = this.processes.findIndex(p => p.id === id);
+    if (processIndex === -1) {
+      throw new Error('Recruitment process not found');
     }
     
-    return this.delete(id);
-  }
-
-  /**
-   * Aprobar proceso (solo managers)
-   */
-  async approve(id: string, reason?: string): Promise<RecruitmentProcess> {
-    if (!this.hasRole('hr-manager')) {
-      toast.error('Solo los managers pueden aprobar procesos');
-      throw new Error('Insufficient permissions to approve recruitment process');
+    const candidateIndex = this.processes[processIndex].candidates.findIndex(c => c.id === candidateId);
+    if (candidateIndex === -1) {
+      throw new Error('Candidate not found');
     }
     
-    return this.updateStatus(id, { status: 'Active', reason: reason || 'Approved by manager' });
+    this.processes[processIndex].candidates[candidateIndex].status = request.status;
+    if (request.stage) {
+      this.processes[processIndex].candidates[candidateIndex].stage = request.stage;
+    }
+    this.processes[processIndex].candidates[candidateIndex].updatedAt = new Date().toISOString();
+    
+    return this.processes[processIndex].candidates[candidateIndex];
   }
 
-  /**
-   * Rechazar proceso (solo managers)
-   */
-  async reject(id: string, reason: string): Promise<RecruitmentProcess> {
-    if (!this.hasRole('hr-manager')) {
-      toast.error('Solo los managers pueden rechazar procesos');
-      throw new Error('Insufficient permissions to reject recruitment process');
+  async removeCandidate(id: string, candidateId: string): Promise<void> {
+    await this.delay();
+    
+    const processIndex = this.processes.findIndex(p => p.id === id);
+    if (processIndex === -1) {
+      throw new Error('Recruitment process not found');
     }
     
-    return this.updateStatus(id, { status: 'Cancelled', reason });
+    const candidateIndex = this.processes[processIndex].candidates.findIndex(c => c.id === candidateId);
+    if (candidateIndex === -1) {
+      throw new Error('Candidate not found');
+    }
+    
+    this.processes[processIndex].candidates.splice(candidateIndex, 1);
+    this.processes[processIndex].metrics.totalCandidates -= 1;
   }
 
-  /**
-   * Actualizar email de un candidato en el proceso de reclutamiento
-   */
   async updateCandidateEmail(
     id: string,
     candidateId: string,
     request: CandidateEmailUpdateRequest
   ): Promise<CandidateEmailUpdateData> {
-    await this.validateAuth();
-
-    try {
-      const response = await httpClient.patch(
-        `${this.buildUrl(id)}/candidate/${candidateId}/email`,
-        request
-      );
-      
-      toast.success(`Candidate email updated to ${request.email}`);
-      return response.data;
-    } catch (error: any) {
-      // Manejo específico de errores del endpoint
-      if (error.response?.status === 409) {
-        toast.error('A candidate with this email already exists in the system');
-      } else if (error.response?.status === 404) {
-        toast.error('Candidate is not associated with this recruitment process');
-      } else if (error.response?.status === 400) {
-        const validationMessage = error.response?.data?.details?.[0]?.message || 'Invalid email format';
-        toast.error(validationMessage);
-      }
-      
-      this.handleError(error, 'update candidate email');
+    await this.delay();
+    
+    const processIndex = this.processes.findIndex(p => p.id === id);
+    if (processIndex === -1) {
+      throw new Error('Recruitment process not found');
     }
+    
+    const candidateIndex = this.processes[processIndex].candidates.findIndex(c => c.id === candidateId);
+    if (candidateIndex === -1) {
+      throw new Error('Candidate not found');
+    }
+    
+    const candidate = this.processes[processIndex].candidates[candidateIndex];
+    const previousEmail = candidate.contact.email;
+    
+    candidate.contact.email = request.email;
+    candidate.updatedAt = new Date().toISOString();
+    
+    return {
+      candidateId,
+      recruitmentProcessId: id,
+      email: request.email,
+      previousEmail,
+      updatedAt: new Date().toISOString(),
+      updatedBy: 'current-user'
+    };
   }
 
+  // ==================== Recruiters Management ====================
+
+  async getAvailableRecruiters(params?: RecruiterFilterParams): Promise<RecruiterListResponse> {
+    await this.delay();
+    
+    let filteredRecruiters = this.recruiters.filter(r => r.isActive);
+    
+    // Filter by department
+    if (params?.department) {
+      filteredRecruiters = filteredRecruiters.filter(r => 
+        r.department?.toLowerCase().includes(params.department!.toLowerCase())
+      );
+    }
+    
+    // Pagination
+    const page = params?.page || 1;
+    const limit = params?.limit || 20;
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedRecruiters = filteredRecruiters.slice(startIndex, endIndex);
+    
+    return {
+      data: paginatedRecruiters,
+      pagination: {
+        current: page,
+        limit,
+        total: filteredRecruiters.length,
+        pages: Math.ceil(filteredRecruiters.length / limit),
+        hasNext: endIndex < filteredRecruiters.length,
+        hasPrevious: page > 1
+      }
+    };
+  }
+
+  // ==================== Publications Management ====================
+
+  async getPublications(id: string, params?: PublicationFilterParams): Promise<PublicationListResponse> {
+    await this.delay();
+    
+    const process = this.processes.find(p => p.id === id);
+    if (!process) {
+      throw new Error('Recruitment process not found');
+    }
+    
+    let publications = [...process.publications];
+    
+    // Filter by status
+    if (params?.status) {
+      publications = publications.filter(p => p.status === params.status);
+    }
+    
+    // Filter by platform
+    if (params?.platform) {
+      publications = publications.filter(p => p.platform === params.platform);
+    }
+    
+    return {
+      data: publications
+    };
+  }
+
+  async createPublication(id: string, request: CreatePublicationRequest): Promise<Publication> {
+    await this.delay(1200);
+    
+    const processIndex = this.processes.findIndex(p => p.id === id);
+    if (processIndex === -1) {
+      throw new Error('Recruitment process not found');
+    }
+    
+    const newPublication = generateMockPublication({
+      platform: request.platform,
+      url: request.url,
+      title: request.title,
+      description: request.description,
+      status: 'Published',
+      publishedAt: new Date().toISOString(),
+      views: Math.floor(Math.random() * 100) + 50,
+      applications: Math.floor(Math.random() * 20) + 5
+    });
+    
+    this.processes[processIndex].publications.push(newPublication);
+    
+    return newPublication;
+  }
+
+  // ==================== Convenience Methods ====================
+
+  async createFromRequirement(requirementId: string): Promise<RecruitmentProcess> {
+    // For dummy implementation, create a basic process
+    return this.create({
+      title: 'New Recruitment Process',
+      department: 'Technology',
+      requirementId
+    });
+  }
+
+  async pause(id: string, reason?: string): Promise<RecruitmentProcess> {
+    return this.setStatus(id, 'Paused', reason);
+  }
+
+  async resume(id: string, reason?: string): Promise<RecruitmentProcess> {
+    return this.setStatus(id, 'Active', reason);
+  }
+
+  async complete(id: string, reason?: string): Promise<RecruitmentProcess> {
+    return this.setStatus(id, 'Completed', reason);
+  }
+
+  async cancel(id: string, reason?: string): Promise<RecruitmentProcess> {
+    return this.setStatus(id, 'Cancelled', reason);
+  }
 }
 
-// Instancia singleton del servicio
+// Singleton instance
 export const recruitmentService = new RecruitmentService();
 export default recruitmentService;

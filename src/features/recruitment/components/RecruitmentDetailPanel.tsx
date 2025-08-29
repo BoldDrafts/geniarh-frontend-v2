@@ -2,9 +2,8 @@
 import { ArrowUpRight, X } from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import CandidatesList from '../../../features/candidate/components/CandidatesList';
-import { LoadingButton } from '../../../shared/components/LoadingButton';
-import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../../../shared/utils/loadingKeys';
+import { LoadingButton } from './LoadingButton';
+import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../utils/loadingKeys';
 import { PublicationData, RecruitmentProcess } from '../types/recruitment';
 import {
     formatDate,
@@ -232,12 +231,44 @@ const RecruitmentDetailPanel: React.FC<RecruitmentDetailPanelProps> = ({
             </div>
 
             {/* Candidates */}
-            <CandidatesList 
-              candidates={recruitment.candidates || []} 
-              onAddCandidate={() => {
-                navigate(`/recruitment/${recruitment.id}/candidates`);
-              }}
-            />
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-md font-medium text-gray-900">Candidates ({recruitment.candidates?.length || 0})</h3>
+                <button 
+                  onClick={() => navigate(`/recruitment/${recruitment.id}/candidates`)}
+                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                >
+                  View All Candidates
+                </button>
+              </div>
+              
+              {recruitment.candidates && recruitment.candidates.length > 0 ? (
+                <div className="space-y-2">
+                  {recruitment.candidates.slice(0, 3).map((candidate) => (
+                    <div key={candidate.id} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {candidate.personalInfo.firstName} {candidate.personalInfo.lastName}
+                          </p>
+                          <p className="text-xs text-gray-500">{candidate.contact.email}</p>
+                        </div>
+                        <span className="text-xs text-gray-500">{candidate.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {recruitment.candidates.length > 3 && (
+                    <p className="text-xs text-gray-500 text-center">
+                      +{recruitment.candidates.length - 3} more candidates
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <p>No candidates yet</p>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Sidebar */}

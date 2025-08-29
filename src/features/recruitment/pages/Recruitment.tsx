@@ -2,9 +2,8 @@
 import React, { useState } from 'react';
 
 // Components
-import AIAssistantPanel from '../../../shared/components/AIAssistantPanel';
-import DeleteConfirmationModal from '../../../shared/components/DeleteConfirmationModal';
-import { FullScreenLoader } from '../../../shared/components/FullScreenLoader';
+import { FullScreenLoader } from '../components/FullScreenLoader';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import LinkedInPublicationModal from '../components/LinkedInPublicationModal';
 import NewRecruitmentForm from '../components/NewRecruitmentForm';
 
@@ -14,7 +13,7 @@ import RecruitmentHeader from '../components/RecruitmentHeader';
 import RecruitmentTable from '../components/RecruitmentTable';
 
 // Hooks
-import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../../../shared/utils/loadingKeys';
+import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../utils/loadingKeys';
 import RecruitmentFilters from '../components/RecruitmentFilters';
 import { useRecruitment } from '../hooks/useRecruitment';
 import { useRecruitmentActions } from '../hooks/useRecruitmentActions';
@@ -23,7 +22,6 @@ import { RecruitmentProcess } from '../types/recruitment';
 
 const Recruitment: React.FC = () => {
   // UI State
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'analytics'>('list');
 
@@ -130,7 +128,6 @@ const Recruitment: React.FC = () => {
         isLoadingRecruitments={isLoadingRecruitments}
         onViewModeChange={handleViewModeChange}
         onRefresh={handleRefresh}
-        onShowAIAssistant={() => setShowAIAssistant(true)}
         onCreateNew={openCreateForm}
       />
 
@@ -182,12 +179,6 @@ const Recruitment: React.FC = () => {
       )}
 
       {/* Modals */}
-      {showAIAssistant && (
-        <AIAssistantPanel 
-          context="recruitment" 
-          onClose={() => setShowAIAssistant(false)} 
-        />
-      )}
 
       {showNewRecruitmentForm && (
         <NewRecruitmentForm

@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import n8nRecruitmentService from '../api/n8nRecruitmentService';
-import { convertToHtml } from '../../../shared/lib/utilMethods';
+import { convertToHtml } from '../lib/utilMethods';
 import { PublicationData, ValidationErrors } from '../types/linkedInModalTypes';
 import { RecruitmentProcess } from '../types/recruitmentProcess';
 
