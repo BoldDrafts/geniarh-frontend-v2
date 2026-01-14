@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ${VOLUME_NAME_CFG}-pvc
+  namespace: ${P_NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  volumeName: "${VOLUME_NAME_CFG}-pv"
+  storageClassName: local-storage

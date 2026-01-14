@@ -1,0 +1,268 @@
+# ============================================================================
+# Git Attributes - Control de finales de línea
+# ============================================================================
+
+# Configuración por defecto: LF para todos los archivos de texto
+* text=auto eol=lf
+
+# ============================================================================
+# CÓDIGO FUENTE
+# ============================================================================
+
+# Java
+*.java text eol=lf
+*.class binary
+*.jar binary
+*.war binary
+*.ear binary
+
+# Kotlin
+*.kt text eol=lf
+*.kts text eol=lf
+
+# Groovy
+*.groovy text eol=lf
+*.gradle text eol=lf
+
+# ============================================================================
+# CONFIGURACIÓN
+# ============================================================================
+
+# YAML
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Properties
+*.properties text eol=lf
+
+# XML
+*.xml text eol=lf
+*.xsd text eol=lf
+*.xsl text eol=lf
+
+# JSON
+*.json text eol=lf
+
+# TOML
+*.toml text eol=lf
+
+# ============================================================================
+# SCRIPTS
+# ============================================================================
+
+# Shell scripts (Unix)
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+
+# Batch scripts (Windows) - mantener CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.psm1 text eol=crlf
+*.psd1 text eol=crlf
+
+# Windows Registry
+*.reg text eol=crlf
+
+# Windows Installer
+*.msi binary
+*.msm binary
+*.msp binary
+
+# Windows Configuration
+*.ini text eol=crlf
+*.cfg text eol=crlf
+*.conf text eol=crlf
+
+# ============================================================================
+# DOCUMENTACIÓN
+# ============================================================================
+
+# Markdown
+*.md text eol=lf
+*.markdown text eol=lf
+
+# Text
+*.txt text eol=lf
+README text eol=lf
+LICENSE text eol=lf
+AUTHORS text eol=lf
+CHANGELOG text eol=lf
+CONTRIBUTING text eol=lf
+
+# AsciiDoc
+*.adoc text eol=lf
+*.asciidoc text eol=lf
+
+# ============================================================================
+# WEB
+# ============================================================================
+
+# HTML
+*.html text eol=lf
+*.htm text eol=lf
+
+# CSS
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.less text eol=lf
+
+# JavaScript
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.mjs text eol=lf
+
+# JSON
+*.json text eol=lf
+*.jsonc text eol=lf
+
+# ============================================================================
+# DIAGRAMAS
+# ============================================================================
+
+# PlantUML
+*.puml text eol=lf
+*.plantuml text eol=lf
+*.pu text eol=lf
+
+# Mermaid
+*.mmd text eol=lf
+*.mermaid text eol=lf
+
+# SVG
+*.svg text eol=lf
+
+# ============================================================================
+# BUILD & DEPLOYMENT
+# ============================================================================
+
+# Maven
+pom.xml text eol=lf
+*.pom text eol=lf
+
+# Gradle
+build.gradle text eol=lf
+settings.gradle text eol=lf
+gradle.properties text eol=lf
+gradlew text eol=lf
+*.gradle.kts text eol=lf
+
+# Docker
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+.dockerignore text eol=lf
+
+# Kubernetes
+*.k8s.yaml text eol=lf
+*.k8s.yml text eol=lf
+
+# Terraform
+*.tf text eol=lf
+*.tfvars text eol=lf
+
+# CI/CD
+.gitlab-ci.yml text eol=lf
+.github/**/*.yml text eol=lf
+.github/**/*.yaml text eol=lf
+Jenkinsfile text eol=lf
+.travis.yml text eol=lf
+azure-pipelines.yml text eol=lf
+
+# ============================================================================
+# GIT
+# ============================================================================
+
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.gitmodules text eol=lf
+.gitkeep text eol=lf
+
+# ============================================================================
+# IDE
+# ============================================================================
+
+# IntelliJ IDEA
+*.iml text eol=lf
+.idea/**/*.xml text eol=lf
+
+# Eclipse
+.project text eol=lf
+.classpath text eol=lf
+.settings/**/*.prefs text eol=lf
+
+# VS Code
+.vscode/**/*.json text eol=lf
+
+# ============================================================================
+# ARCHIVOS BINARIOS
+# ============================================================================
+
+# Imágenes
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.bmp binary
+*.tiff binary
+*.webp binary
+
+# Fuentes
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+
+# Archivos comprimidos
+*.zip binary
+*.tar binary
+*.gz binary
+*.tgz binary
+*.rar binary
+*.7z binary
+
+# PDF
+*.pdf binary
+
+# Ejecutables
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+
+# Bases de datos
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# Office
+*.doc binary
+*.docx binary
+*.xls binary
+*.xlsx binary
+*.ppt binary
+*.pptx binary
+
+# ============================================================================
+# LINGUIST (GitHub language detection)
+# ============================================================================
+
+# Excluir archivos generados del análisis de lenguajes
+target/** linguist-generated=true
+build/** linguist-generated=true
+dist/** linguist-generated=true
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true
+
+# Marcar documentación
+*.md linguist-documentation=true
+docs/** linguist-documentation=true
+
+/mvnw text eol=lf
+*.cmd text eol=crlf

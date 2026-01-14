@@ -1,0 +1,55 @@
+# Primero el Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: ${P_NAMESPACE}
+  name: ${P_K8S_APP}-ingress
+  labels:
+    name: ${P_K8S_APP}-ingress
+  annotations:
+    # Configuración para NGINX Ingress Controller
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    
+    # Redirección de HTTP a HTTPS
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      if ($!request_uri !~ "/.well-known/acme-challenge/") {
+        return 301 https://$!host$!request_uri;
+      }
+    
+    # Anotaciones para cert-manager y Let's Encrypt
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Nombre del ClusterIssuer, no de la clave
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - hosts:
+        - ${P_DOMAIN}
+      secretName: ${P_K8S_APP}-tls-cert  # Este secreto será creado automáticamente por cert-manager
+  rules:
+    - host: ${P_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ${P_K8S_APP}-svc
+                port:
+                  number: 8080
+---
+# Después el Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  namespace: ${P_NAMESPACE}
+  name: ${P_K8S_APP}-tls-cert
+spec:
+  secretName: ${P_K8S_APP}-tls-cert
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - ${P_DOMAIN}
