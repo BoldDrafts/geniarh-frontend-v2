@@ -11,6 +11,7 @@ import FormHeader from './FormHeader';
 import AIToggleSection from './sections/AIToggleSection';
 import BasicInfoSection from './sections/BasicInfoSection';
 import SalarySection from './sections/SalarySection';
+import RecruitmentStagesWithDates from './RecruitmentStagesWithDates';
 import { NewRecruitmentFormProps } from '../types/recruitmentFormTypes';
 
 const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
@@ -34,6 +35,9 @@ const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
     setNewSoftSkill,
     handleAddSoftSkill,
     handleRemoveSoftSkill,
+    // Recruitment Stages
+    recruitmentStages,
+    handleStageDueDateChange,
     // Recruiters
     recruiters,
     loadingRecruiters,
@@ -100,8 +104,15 @@ const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
             onChange={setJobDescription}
           />
 
+          {/* Recruitment Stages with Due Dates */}
+          <RecruitmentStagesWithDates
+            stages={recruitmentStages}
+            onStageDateChange={handleStageDueDateChange}
+            disabled={isSubmitting}
+          />
+
           {/* AI Toggle Section */}
-          <AIToggleSection useAI={useAI} onToggle={setUseAI} />
+          {/* <AIToggleSection useAI={useAI} onToggle={setUseAI} /> */}
 
           {/* Form Actions */}
           <FormActions

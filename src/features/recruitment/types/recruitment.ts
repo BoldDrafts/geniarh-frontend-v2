@@ -98,6 +98,22 @@ export type {
   PublicationTemplate
 } from './publication';
 
+// ==================== EXPORTAR TIPOS DE FECHAS DE VENCIMIENTO ====================
+export type {
+  StageEnum,
+  StageDueDate,
+  CreateStageDueDateRequest,
+  UpdateStageDueDateRequest,
+  StageDueDateFilterParams,
+  StageDueDateListResponse,
+  OverdueStageDueDateParams,
+  UpcomingStageDueDateAlertsParams,
+  DaysOverdueCalculation,
+  StageDueDateStats,
+  StageDueDateSummary,
+  StageDueDateError
+} from './stageDueDate';
+
 // ==================== EXPORTAR TIPOS DE RECRUITER ====================
 export type {
   Recruiter,

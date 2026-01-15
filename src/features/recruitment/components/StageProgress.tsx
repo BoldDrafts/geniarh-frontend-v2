@@ -1,10 +1,11 @@
 import React from 'react';
-import { CheckCircle, Clock, AlertCircle, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, XCircle, Calendar } from 'lucide-react';
 
 export interface Stage {
   name: string;
   status: 'complete' | 'current' | 'upcoming' | 'cancelled';
   description?: string;
+  dueDate?: string;
 }
 
 interface StageProgressProps {
@@ -40,7 +41,7 @@ const StageProgress: React.FC<StageProgressProps> = ({ stages }) => {
     }
   };
 
-  const getConnectorClasses = (currentStatus: Stage['status'], nextStatus?: Stage['status']) => {
+  const getConnectorClasses = (currentStatus: Stage['status']) => {
     if (currentStatus === 'complete') {
       return 'bg-green-600';
     }
@@ -51,6 +52,40 @@ const StageProgress: React.FC<StageProgressProps> = ({ stages }) => {
       return 'bg-red-600';
     }
     return 'bg-gray-300';
+  };
+
+  const getDueDateStatus = (dueDate?: string) => {
+    if (!dueDate) return 'none';
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    
+    const diffTime = due.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return 'overdue';
+    if (diffDays <= 3) return 'urgent';
+    if (diffDays <= 7) return 'warning';
+    return 'normal';
+  };
+
+  const getDueDateColor = (dueDate?: string) => {
+    const status = getDueDateStatus(dueDate);
+    switch (status) {
+      case 'overdue': return 'text-red-600';
+      case 'urgent': return 'text-orange-600';
+      case 'warning': return 'text-yellow-600';
+      default: return 'text-gray-500';
+    }
+  };
+
+  const formatDueDate = (dueDate?: string) => {
+    if (!dueDate) return '';
+    const date = new Date(dueDate);
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
   };
 
   return (
@@ -72,18 +107,24 @@ const StageProgress: React.FC<StageProgressProps> = ({ stages }) => {
                 }`}>
                   {stage.name}
                 </div>
-                {stage.description && (
-                  <div className="text-xs text-gray-500 mt-1 max-w-20 break-words">
-                    {stage.description}
-                  </div>
-                )}
+{stage.description && (
+                   <div className="text-xs text-gray-500 mt-1 max-w-20 break-words">
+                     {stage.description}
+                   </div>
+                 )}
+                 {stage.dueDate && (
+                   <div className={`flex items-center justify-center mt-1 text-xs ${getDueDateColor(stage.dueDate)}`}>
+                     <Calendar className="h-3 w-3 mr-1" />
+                     {formatDueDate(stage.dueDate)}
+                   </div>
+                 )}
               </div>
             </div>
 
             {/* Connector */}
             {index < stages.length - 1 && (
               <div className="flex-1 mx-2">
-                <div className={`h-0.5 ${getConnectorClasses(stage.status, stages[index + 1]?.status)}`} />
+                <div className={`h-0.5 ${getConnectorClasses(stage.status)}`} />
               </div>
             )}
           </React.Fragment>

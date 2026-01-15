@@ -1,6 +1,6 @@
 // hooks/useRecruitmentForm.ts
 import { useState, useEffect } from 'react';
-import { Recruiter, RecruitmentProcess, Requirement } from '../types/recruitment';
+import { Recruiter, RecruitmentProcess, Requirement, RecruitmentStage } from '../types/recruitment';
 import { toast } from 'react-hot-toast';
 import recruitmentService from '../api/recruitmentService';
 
@@ -14,6 +14,30 @@ export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
   // Soft Skills (new)
   const [softSkills, setSoftSkills] = useState<string[]>(initialData?.requirement.softSkills || []);
   const [newSoftSkill, setNewSoftSkill] = useState('');
+  
+  // Recruitment Stages with due dates
+  const [recruitmentStages, setRecruitmentStages] = useState<RecruitmentStage[]>(() => {
+    const defaultStages: RecruitmentStage[] = [
+      { name: 'Publicación', status: 'upcoming', description: 'Publicar la vacante' },
+      { name: 'Recepción', status: 'upcoming', description: 'Recibir candidaturas' },
+      { name: 'Screening', status: 'upcoming', description: 'Filtrar candidatos' },
+      { name: 'Entrevista', status: 'upcoming', description: 'Realizar entrevistas' },
+      { name: 'Selección', status: 'upcoming', description: 'Seleccionar finalistas' },
+      { name: 'Oferta', status: 'upcoming', description: 'Extender oferta' }
+    ];
+    
+    if (initialData?.timeline) {
+      return defaultStages.map((stage, index) => {
+        const timelineKey = Object.keys(initialData.timeline)[index];
+        return {
+          ...stage,
+          dueDate: initialData.timeline[timelineKey as keyof typeof initialData.timeline]
+        };
+      });
+    }
+    
+    return defaultStages;
+  });
   
   // Recruiters state
   const [recruiters, setRecruiters] = useState<Recruiter[]>([]);
@@ -78,8 +102,19 @@ export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
     }
   };
 
-  const handleRemoveSoftSkill = (skillToRemove: string) => {
+const handleRemoveSoftSkill = (skillToRemove: string) => {
     setSoftSkills(softSkills.filter(skill => skill !== skillToRemove));
+  };
+
+  // Recruitment Stages handlers
+  const handleStageDueDateChange = (stageName: string, dueDate: string) => {
+    setRecruitmentStages(prevStages => 
+      prevStages.map(stage => 
+        stage.name === stageName 
+          ? { ...stage, dueDate: dueDate || undefined }
+          : stage
+      )
+    );
   };
 
   const handleSubmit = async (
@@ -94,11 +129,12 @@ export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
       const data = Object.fromEntries(formData.entries());
       //console.log("form data: ", data);
       
-      // Add skills, soft skills and description to form data
+// Add skills, soft skills, stages and description to form data
       const submitData = { 
         ...data, 
         skills,
         softSkills, // Added soft skills to submit data
+        recruitmentStages, // Add stages with due dates
         description: jobDescription,
         useAI 
       };
@@ -134,6 +170,10 @@ export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
     loadingRecruiters,
     recruitersError,
     retryLoadRecruiters,
+    
+// Recruitment Stages
+    recruitmentStages,
+    handleStageDueDateChange,
     
     // Common
     isSubmitting,

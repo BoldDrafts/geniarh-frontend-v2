@@ -36,6 +36,10 @@
     {
       "name": "Publications",
       "description": "Operations related to job publications on various platforms"
+    },
+    {
+      "name": "Stage Due Dates",
+      "description": "Operations related to managing stage due dates and alerts in recruitment processes"
     }
   ],
   "paths": {
@@ -563,7 +567,7 @@
         }
       ],
       "get": {
-        "operationId": "getBulkUploadStatus",
+          "operationId": "getBulkUploadStatus",
         "summary": "Get bulk upload process status",
         "description": "Check the status of an ongoing or completed bulk upload process",
         "tags": [
@@ -1897,6 +1901,498 @@
           }
         }
       }
+    },
+    "/recruitments/{id}/stage-due-dates": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Unique identifier of the recruitment process"
+        }
+      ],
+      "get": {
+        "operationId": "getRecruitmentStageDueDates",
+        "summary": "Get all stage due dates for recruitment process",
+        "description": "Retrieve all stage due dates configured for a specific recruitment process",
+        "tags": [
+          "Recruitment",
+          "Stage Due Dates"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "stage",
+            "schema": {
+              "$ref": "#/components/schemas/StageEnum"
+            },
+            "description": "Filter by specific stage"
+          },
+          {
+            "in": "query",
+            "name": "isOverdue",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Filter to show only overdue stages"
+          },
+          {
+            "in": "query",
+            "name": "isCompleted",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Filter by completion status"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "stage",
+                "dueDate",
+                "createdAt",
+                "updatedAt"
+              ],
+              "default": "stage"
+            },
+            "description": "Field to sort by"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            },
+            "description": "Sort order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of stage due dates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageDueDateListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createStageDueDate",
+        "summary": "Create a stage due date",
+        "description": "Create a new due date for a specific stage in the recruitment process",
+        "tags": [
+          "Recruitment",
+          "Stage Due Dates"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStageDueDateRequest"
+              },
+              "examples": {
+                "screening_stage": {
+                  "summary": "Screening stage due date",
+                  "value": {
+                    "stage": "screening",
+                    "dueDate": "2025-08-15",
+                    "alertDays": 3,
+                    "notes": "Complete initial screening of all candidates"
+                  }
+                },
+                "technical_stage": {
+                  "summary": "Technical interview due date",
+                  "value": {
+                    "stage": "technical",
+                    "dueDate": "2025-08-25",
+                    "alertDays": 2,
+                    "notes": "Complete all technical interviews"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Stage due date created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageDueDate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "stage_exists": {
+                    "summary": "Stage due date already exists",
+                    "value": {
+                      "code": "STAGE_DUE_DATE_EXISTS",
+                      "message": "A due date for this stage already exists",
+                      "timestamp": "2025-08-19T10:30:00Z",
+                      "requestId": "req-12345"
+                    }
+                  },
+                  "invalid_due_date": {
+                    "summary": "Invalid due date",
+                    "value": {
+                      "code": "INVALID_DUE_DATE",
+                      "message": "Due date must be in the future",
+                      "timestamp": "2025-08-19T10:30:00Z",
+                      "requestId": "req-12346"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/recruitments/{id}/stage-due-dates/{stageDueDateId}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Unique identifier of the recruitment process"
+        },
+        {
+          "name": "stageDueDateId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Unique identifier of the stage due date"
+        }
+      ],
+      "get": {
+        "operationId": "getStageDueDate",
+        "summary": "Get specific stage due date",
+        "description": "Retrieve detailed information about a specific stage due date",
+        "tags": [
+          "Recruitment",
+          "Stage Due Dates"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stage due date details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageDueDate"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateStageDueDate",
+        "summary": "Update stage due date",
+        "description": "Update an existing stage due date with new information",
+        "tags": [
+          "Recruitment",
+          "Stage Due Dates"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStageDueDateRequest"
+              },
+              "examples": {
+                "update_due_date": {
+                  "summary": "Update due date and alert",
+                  "value": {
+                    "dueDate": "2025-08-20",
+                    "alertDays": 5,
+                    "notes": "Extended due date due to high volume"
+                  }
+                },
+                "mark_completed": {
+                  "summary": "Mark stage as completed",
+                  "value": {
+                    "isCompleted": true,
+                    "notes": "All interviews completed successfully"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stage due date updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageDueDate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteStageDueDate",
+        "summary": "Delete stage due date",
+        "description": "Remove a stage due date from the recruitment process",
+        "tags": [
+          "Recruitment",
+          "Stage Due Dates"
+        ],
+        "responses": {
+          "204": {
+            "description": "Stage due date deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/recruitments/{id}/stage-due-dates/overdue": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Unique identifier of the recruitment process"
+        }
+      ],
+      "get": {
+        "operationId": "getOverdueStageDueDates",
+        "summary": "Get overdue stage due dates",
+        "description": "Retrieve all stage due dates that are past their due date and not completed",
+        "tags": [
+          "Recruitment",
+          "Stage Due Dates"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "daysOverdue",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Filter by minimum days overdue (0 for all overdue)"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dueDate",
+                "stage",
+                "daysOverdue"
+              ],
+              "default": "daysOverdue"
+            },
+            "description": "Field to sort by"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "description": "Sort order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of overdue stage due dates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageDueDateListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/recruitments/{id}/stage-due-dates/alerts": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Unique identifier of the recruitment process"
+        }
+      ],
+      "get": {
+        "operationId": "getUpcomingStageDueDateAlerts",
+        "summary": "Get upcoming stage due date alerts",
+        "description": "Retrieve stage due dates that are approaching their alert threshold",
+        "tags": [
+          "Recruitment",
+          "Stage Due Dates"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "daysThreshold",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 7
+            },
+            "description": "Alert threshold in days (default: 7 days)"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dueDate",
+                "stage",
+                "daysUntilDue"
+              ],
+              "default": "daysUntilDue"
+            },
+            "description": "Field to sort by"
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            },
+            "description": "Sort order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of upcoming stage due date alerts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageDueDateListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2227,6 +2723,7 @@
           "pending",
           "processing",
           "completed",
+          "completed_with_errors",
           "failed",
           "cancelled"
         ],
@@ -3962,6 +4459,13 @@
           },
           "timeline": {
             "$ref": "#/components/schemas/RecruitmentTimeline"
+          },
+          "stageDueDates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageDueDate"
+            },
+            "description": "Configured due dates for each recruitment stage"
           }
         },
         "required": [
@@ -4559,6 +5063,152 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "StageEnum": {
+        "type": "string",
+        "enum": [
+          "applied",
+          "screening",
+          "technical",
+          "cultural",
+          "offer",
+          "hired"
+        ],
+        "description": "Recruitment process stages"
+      },
+      "StageDueDate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the stage due date"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/StageEnum"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Due date for completing this stage"
+          },
+          "alertDays": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30,
+            "description": "Number of days before due date to send alert",
+            "example": 3
+          },
+          "isCompleted": {
+            "type": "boolean",
+            "description": "Whether this stage has been completed",
+            "example": false
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the stage was completed"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Additional notes about the stage due date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the stage due date was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the stage due date was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "stage",
+          "dueDate",
+          "isCompleted"
+        ]
+      },
+      "CreateStageDueDateRequest": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "$ref": "#/components/schemas/StageEnum"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Due date for completing this stage",
+            "example": "2025-08-15"
+          },
+          "alertDays": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30,
+            "description": "Number of days before due date to send alert",
+            "example": 3
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Additional notes about the stage due date"
+          }
+        },
+        "required": [
+          "stage",
+          "dueDate"
+        ],
+        "additionalProperties": false
+      },
+      "UpdateStageDueDateRequest": {
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Due date for completing this stage",
+            "example": "2025-08-15"
+          },
+          "alertDays": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30,
+            "description": "Number of days before due date to send alert",
+            "example": 3
+          },
+          "isCompleted": {
+            "type": "boolean",
+            "description": "Whether this stage has been completed",
+            "example": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Additional notes about the stage due date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StageDueDateListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageDueDate"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
         ]
       }
     },

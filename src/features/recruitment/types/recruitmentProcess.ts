@@ -5,6 +5,7 @@ import { Pagination } from './shared';
 import { Requirement } from './requirement';
 import { Candidate } from './candidate';
 import { Publication } from './publication';
+import { StageDueDate } from './stageDueDate';
 
 // ==================== INTERFACE PRINCIPAL DEL PROCESO ====================
 
@@ -16,6 +17,7 @@ export interface RecruitmentProcess {
   status: RecruitmentStatus;
   metrics: RecruitmentMetrics;
   timeline: RecruitmentTimeline;
+  stageDueDates: StageDueDate[];
   assignedRecruiter?: {
     id: string;
     name: string;
@@ -153,6 +155,7 @@ export interface RecruitmentStage {
   description: string;
   startDate?: string;
   endDate?: string;
+  dueDate?: string; // Fecha de vencimiento para la etapa
   duration?: number;
   responsible?: string;
 }
