@@ -58,7 +58,7 @@ export class AuthService {
     }
     
     return {
-      id: KeycloakLocal.tokenParsed.sub,
+      id: KeycloakLocal.tokenParsed.sub!,
       username: KeycloakLocal.tokenParsed.preferred_username,
       email: KeycloakLocal.tokenParsed.email,
       name: KeycloakLocal.tokenParsed.name,
@@ -111,7 +111,7 @@ export class AuthService {
    * @returns string | null - Token bearer o null si no está autenticado
    */
   getToken(): string | null {
-    return KeycloakLocal.authenticated ? KeycloakLocal.token : null;
+    return KeycloakLocal.authenticated ? KeycloakLocal.token! : null;
   }
 
   /**

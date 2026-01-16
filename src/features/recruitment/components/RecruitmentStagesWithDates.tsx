@@ -1,29 +1,32 @@
 import React from 'react';
-import StageDateSelector from './StageDateSelector';
 import { RecruitmentStage } from '../types/recruitmentProcess';
-import { useStageDueDates } from '../hooks/useStageDueDates';
+import StageDateSelector from './StageDateSelector';
 
 interface RecruitmentStagesWithDatesProps {
   stages: RecruitmentStage[];
   onStageDateChange: (stageName: string, dueDate: string) => void;
   disabled?: boolean;
   title?: string;
+  recruitmentId: string;
 }
 
+type OveralStatusEnum = 'overdue' | 'urgent' | 'warning' | 'gray' | 'normal';
+
+interface OverallStatusDto {
+  status: OveralStatusEnum;
+  color: string;
+  text: string;
+}
 
 const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
   stages,
   onStageDateChange,
   disabled = false,
-  title = 'Fechas de Vencimiento por Etapa'
+  title = 'Fechas de Vencimiento por Etapa',
+  recruitmentId
 }) => {
-  const { updateDueDate, deleteDueDate, createDueDate } = useStageDueDates({
-    recruitmentId: stages[0]?.recruitmentId || '',
-    autoRefresh: true,
-    refreshInterval: 30000
-  });
 
-  const getOverallStatus = () => {
+  const getOverallStatus = () : OverallStatusDto => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -56,17 +59,6 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
     return { status: 'normal', color: 'gray', text: 'Todas las etapas están en tiempo' };
   };
 
-  const handleStageDateChange = (stageName: string, dueDate: string) => {
-    if (disabled) return;
-    
-    // Aquí podrías integrar con el servicio
-    const recruitmentId = stages[0]?.recruitmentId || '';
-    updateDueDate(recruitmentId, stageName, dueDate);
-    
-    // También podrías mostrar una notificación de éxito
-    console.log(`Fecha de vencimiento actualizada: ${stageName} - ${dueDate}`);
-  };
-
   const overallStatus = getOverallStatus();
 
   return (
@@ -88,6 +80,7 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
             stage={stage}
             onDueDateChange={onStageDateChange}
             disabled={disabled}
+            recruitmentId={recruitmentId}
           />
         ))}
       </div>

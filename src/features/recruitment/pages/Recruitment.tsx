@@ -3,21 +3,19 @@ import React, { useState } from 'react';
 
 // Components
 import { FullScreenLoader } from '../components/FullScreenLoader';
-import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import LinkedInPublicationModal from '../components/LinkedInPublicationModal';
 import NewRecruitmentForm from '../components/NewRecruitmentForm';
 import RecruitmentDetailPanel from '../components/RecruitmentDetailPanel';
 import RecruitmentHeader from '../components/RecruitmentHeader';
 import RecruitmentTable from '../components/RecruitmentTable';
-import RecruitmentStagesWithDates from '../components/RecruitmentStagesWithDates';
-import { useStageDueDates } from '../hooks/useStageDueDates';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 
 // Hooks
-import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../utils/loadingKeys';
 import RecruitmentFilters from '../components/RecruitmentFilters';
 import { useRecruitment } from '../hooks/useRecruitment';
 import { useRecruitmentActions } from '../hooks/useRecruitmentActions';
 import { RecruitmentProcess } from '../types/recruitment';
+import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../utils/loadingKeys';
 
 
 const Recruitment: React.FC = () => {
@@ -175,19 +173,6 @@ const Recruitment: React.FC = () => {
           onPublicationAction={handlePublicationAction}
           onShowLinkedInModal={() => setShowLinkedInModal(true)}
           isLoading={isLoading}
-        />
-      )}
-      
-      {/* Recruitment Stages with Due Dates */}
-      {selectedRecruitment && (
-        <RecruitmentStagesWithDates
-          stages={selectedRecruitment.stageDueDates || []}
-          onStageDateChange={(stageName, dueDate) => {
-            // Aquí podrías integrar con el servicio para actualizar las fechas
-            console.log('Stage date updated:', { stageName, dueDate });
-          }}
-          title="Fechas de Vencimiento por Etapa"
-          disabled={isLoading}
         />
       )}
 

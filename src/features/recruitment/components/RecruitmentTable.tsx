@@ -53,7 +53,7 @@ const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="flex items-center justify-center py-12">
-          <LoadingSpinner size="lg" text="Loading recruitment processes..." />
+          <LoadingSpinner size="lg" />
         </div>
       </div>
     );
@@ -90,7 +90,6 @@ const RecruitmentTable: React.FC<RecruitmentTableProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden relative">
-      <LoadingOverlay show={isLoading} text="Loading recruitment processes..." />
       
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">

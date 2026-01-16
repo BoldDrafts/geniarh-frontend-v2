@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, AlertTriangle, CheckCircle, Save } from 'lucide-react';
-import { RecruitmentStage } from '../types/recruitmentProcess';
 import { stageDueDateService } from '../api/stageDueDateService';
 import { StageDueDate } from '../types/stageDueDate';
+import { RecruitmentStage } from '../types/recruitmentProcess';
 
 interface StageDateSelectorProps {
   stage: RecruitmentStage;
@@ -65,7 +65,7 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
         // Crear nueva fecha
         await stageDueDateService.createForStage(
           recruitmentId,
-          stage.name as StageDueDate['stage'],
+          stage.status as StageDueDate['stage'],
           stage.dueDate
         );
       }

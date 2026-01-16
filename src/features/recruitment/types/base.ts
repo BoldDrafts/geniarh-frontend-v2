@@ -2,92 +2,114 @@
 
 // ==================== TIPOS DE ESTADO ====================
 
-export type RecruitmentStatus = 'Draft' | 'Active' | 'Paused' | 'Completed' | 'Cancelled';
+/**
+ * Enumeración de etapas del proceso de reclutamiento
+ */
+export type RecruitmentStageEnum = 
+  | "CREATED"
+  | "PUBLISHED"
+  | "SOURCING"
+  | "SCREENING"
+  | "INTERVIEWS"
+  | "SHORTLIST"
+  | "HIRING";
 
-export type RequirementStatus = 'Active' | 'Draft' | 'Closed' | 'Email' | 'Recruitment';
+export type StageStatusEnum = 
+  | 'UPCOMING'
+  | 'CURRENT'
+  | 'COMPLETE'
+  | 'CANCELLED';
+
+export type RecruitmentStatus = 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+
+export type RequirementStatus = 'ACTIVE' | 'DRAFT' | 'CLOSED' | 'EMAIL' | 'RECRUITMENT';
 
 export type CandidateStatus = 
-  | 'New' 
-  | 'Contacted' 
-  | 'Interview' 
-  | 'Offer' 
-  | 'Hired' 
-  | 'Rejected';
+  | 'NEW' 
+  | 'CONTACTED' 
+  | 'INTERVIEW' 
+  | 'OFFER' 
+  | 'HIRED' 
+  | 'REJECTED';
 
 export type CandidateStage = 
-  | 'applied'
-  | 'screening'
-  | 'technical'
-  | 'cultural'
-  | 'offer'
-  | 'hired';
+  | 'APPLIED'
+  | 'SCREENING'
+  | 'TECHNICAL'
+  | 'CULTURAL'
+  | 'OFFER'
+  | 'HIRED';
 
 // ==================== TIPOS DE CLASIFICACIÓN ====================
 
-export type Priority = 'High' | 'Medium' | 'Low' | 'Urgent';
+export type Priority = 'HIGH' | 'MEDIUM' | 'LOW' | 'URGENT';
 
-export type ExperienceLevel = 'Entry' | 'Mid' | 'Senior' | 'Lead' | 'Executive';
+export type ExperienceLevel = 'ENTRY' | 'MID' | 'SENIOR' | 'LEAD' | 'EXECUTIVE';
 
-export type EmploymentType = 'Full-time' | 'Part-time' | 'Contract' | 'Internship';
+export type EmploymentType = 'FULL-TIME' | 'PART-TIME' | 'CONTRACT' | 'INTERNSHIP';
 
-export type Timeframe = 'Immediate' | '1-2 months' | '3-6 months' | '6+ months';
+export type Timeframe = 'IMMEDIATE' | '1-2 MONTHS' | '3-6 MONTHS' | '6+ MONTHS';
 
 // ==================== TIPOS DE DATOS ====================
 
 export type Currency = 'PEN' | 'USD';
 
-export type SalaryFrequency = 'Hourly' | 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
+export type SalaryFrequency = 'HOURLY' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 
-export type SortField = 'createdAt' | 'updatedAt' | 'title' | 'department' | 'priority';
+export type SortField = 'createdAt' | 'updateAt' | 'Title' | 'Department' | 'Priority';
 
 export type SortOrder = 'asc' | 'desc';
 
 // ==================== TIPOS DE PUBLICACIÓN ====================
 
 export type PublicationPlatform = 
-  | 'LinkedIn' 
-  | 'Computrabajo' 
-  | 'Indeed' 
-  | 'Glassdoor' 
-  | 'CompanyWebsite' 
-  | 'Other';
+  | 'LINKEDIN' 
+  | 'COMPUTRABAJO' 
+  | 'INDEED' 
+  | 'GLASSDOOR' 
+  | 'COMPANYWEBSITE' 
+  | 'OTHER';
 
-export type PublicationStatus = 'Draft' | 'Published' | 'Expired' | 'Suspended' | 'Archived';
+export type PublicationStatus = 'DRAFT' | 'PUBLISHED' | 'EXPIRED' | 'SUSPENDED' | 'ARCHIVED';
 
 // ==================== TIPOS DE ENTREVISTA ====================
 
 export type InterviewType = 
-  | 'Phone' 
-  | 'Video' 
-  | 'InPerson' 
-  | 'Technical' 
-  | 'Panel' 
-  | 'Behavioral';
+  | 'PHONE' 
+  | 'VIDEO' 
+  | 'INPERSON' 
+  | 'TECHNICAL' 
+  | 'PANEL' 
+  | 'BEHAVIORAL';
 
 export type InterviewStatus = 
-  | 'Scheduled' 
-  | 'InProgress' 
-  | 'Completed' 
-  | 'Cancelled' 
-  | 'Rescheduled';
+  | 'SCHEDULED' 
+  | 'INPROGRESS' 
+  | 'COMPLETED' 
+  | 'CANCELLED' 
+  | 'RESCHEDULED';
 
 export type HiringRecommendation = 
-  | 'StrongHire' 
-  | 'Hire' 
-  | 'MaybeHire' 
-  | 'NoHire' 
-  | 'StrongNoHire';
+  | 'STRONGHIRE' 
+  | 'HIRE' 
+  | 'MAYBEHIRE' 
+  | 'NOHIRE' 
+  | 'STRONGNOHIRE';
 
 // ==================== TIPOS DE HABILIDADES Y EDUCACIÓN ====================
 
-export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+export type SkillLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
 
-export type LanguageProficiency = 'Basic' | 'Conversational' | 'Business' | 'Fluent' | 'Native';
+export type LanguageProficiency = 'BASIC' | 'CONVERSATIONAL' | 'BUSINESS' | 'FLUENT' | 'NATIVE';
 
 export type EducationLevel = 
-  | 'HighSchool' 
-  | 'Associate' 
-  | 'Bachelor' 
-  | 'Master' 
-  | 'Doctorate' 
-  | 'Professional';
+  | 'HIGHSCHOOL' 
+  | 'ASSOCIATE' 
+  | 'BACHELOR' 
+  | 'MASTER' 
+  | 'DOCTORATE' 
+  | 'PROFESSIONAL';
+
+export type QualityLevel = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export type HealthScoreStatus = 'EXCELLENT' | 'GOOD' | 'WARNING' | 'CRITICAL';

@@ -16,6 +16,7 @@ import {
   Publication,
   PublicationFilterParams,
   PublicationListResponse,
+  PublicationPlatform,
   Recruiter,
   RecruiterAssociationResponse,
   RecruiterFilterParams,
@@ -56,7 +57,7 @@ class RecruitmentService extends BaseService<
   /**
    * Actualizar el estado de un proceso de reclutamiento
    */
-  async updateStatus(id: string, request: UpdateStatusRequest): Promise<RecruitmentProcess> {
+  async updateStatus(id: string, request: UpdateStatusRequest): Promise<RecruitmentProcess | undefined> {
     try {
       const data = await this.customOperation<RecruitmentProcess>(
         id,
@@ -74,15 +75,15 @@ class RecruitmentService extends BaseService<
   /**
    * Obtener mÃ©tricas detalladas de un proceso de reclutamiento
    */
-  async getMetrics(id: string): Promise<RecruitmentMetrics> {
-    return this.customOperation<RecruitmentMetrics>(id, 'metrics', undefined, 'GET');
+  async getMetrics(id: string): Promise<RecruitmentMetrics | undefined> {
+    return this.customOperation<RecruitmentMetrics | undefined>(id, 'metrics', undefined, 'GET');
   }
 
   /**
    * Obtener timeline de un proceso de reclutamiento
    */
-  async getTimeline(id: string): Promise<RecruitmentTimeline> {
-    return this.customOperation<RecruitmentTimeline>(id, 'timeline', undefined, 'GET');
+  async getTimeline(id: string): Promise<RecruitmentTimeline | undefined> {
+    return this.customOperation<RecruitmentTimeline | undefined>(id, 'timeline', undefined, 'GET');
   }
 
   // ==================== GestiÃ³n de Candidatos ====================
@@ -93,7 +94,7 @@ class RecruitmentService extends BaseService<
   async getCandidates(
     id: string,
     params?: CandidateFilterParams
-  ): Promise<CandidateListResponse> {
+  ): Promise<CandidateListResponse | undefined> {
     await this.validateAuth();
 
     try {
@@ -116,7 +117,7 @@ class RecruitmentService extends BaseService<
   /**
    * Obtener detalles de un candidato en el contexto del proceso de reclutamiento
    */
-  async getCandidate(id: string, candidateId: string): Promise<Candidate> {
+  async getCandidate(id: string, candidateId: string): Promise<Candidate | undefined> {
     await this.validateAuth();
 
     try {
@@ -148,7 +149,7 @@ class RecruitmentService extends BaseService<
     id: string,
     candidateId: string,
     request: CandidateStatusUpdateRequest
-  ): Promise<Candidate> {
+  ): Promise<Candidate | undefined> {
     await this.validateAuth();
 
     try {
@@ -171,7 +172,7 @@ class RecruitmentService extends BaseService<
   async getPublications(
     id: string,
     params?: PublicationFilterParams
-  ): Promise<PublicationListResponse> {
+  ): Promise<PublicationListResponse | undefined> {
     await this.validateAuth();
 
     try {
@@ -197,7 +198,7 @@ class RecruitmentService extends BaseService<
   async createPublication(
     id: string,
     request: CreatePublicationRequest
-  ): Promise<Publication> {
+  ): Promise<Publication | undefined> {
     try {
       const data = await this.customOperation<Publication>(
         id,
@@ -215,7 +216,7 @@ class RecruitmentService extends BaseService<
   /**
    * Obtener una publicación específica
    */
-  async getPublication(id: string, publicationId: string): Promise<Publication> {
+  async getPublication(id: string, publicationId: string): Promise<Publication | undefined> {
     await this.validateAuth();
 
     try {
@@ -233,7 +234,7 @@ class RecruitmentService extends BaseService<
     id: string,
     publicationId: string,
     request: UpdatePublicationRequest
-  ): Promise<Publication> {
+  ): Promise<Publication | undefined> {
     await this.validateAuth();
 
     try {
@@ -267,7 +268,7 @@ class RecruitmentService extends BaseService<
   /**
    * Obtener reclutadores disponibles
    */
-  async getAvailableRecruiters(params?: RecruiterFilterParams): Promise<RecruiterListResponse> {
+  async getAvailableRecruiters(params?: RecruiterFilterParams): Promise<RecruiterListResponse | undefined> {
     await this.validateAuth();
 
     try {
@@ -291,7 +292,7 @@ class RecruitmentService extends BaseService<
   /**
    * Crear un nuevo reclutador
    */
-  async createRecruiter(request: CreateRecruiterRequest): Promise<Recruiter> {
+  async createRecruiter(request: CreateRecruiterRequest): Promise<Recruiter | undefined> {
     await this.validateAuth();
 
     try {
@@ -312,7 +313,7 @@ class RecruitmentService extends BaseService<
   async associateRecruiter(
     id: string,
     request: AssociateRecruiterRequest
-  ): Promise<RecruiterAssociationResponse> {
+  ): Promise<RecruiterAssociationResponse | undefined> {
     try {
       const data = await this.customOperation<RecruiterAssociationResponse>(
         id,
@@ -332,7 +333,7 @@ class RecruitmentService extends BaseService<
   /**
    * Crear proceso de reclutamiento desde un requirement ID
    */
-  async createFromRequirement(requirementId: string): Promise<RecruitmentProcess> {
+  async createFromRequirement(requirementId: string): Promise<RecruitmentProcess | undefined> {
     return this.create({ requirementId });
   }
 
@@ -343,7 +344,7 @@ class RecruitmentService extends BaseService<
     id: string,
     status: RecruitmentStatus,
     reason?: string
-  ): Promise<RecruitmentProcess> {
+  ): Promise<RecruitmentProcess | undefined> {
     return this.updateStatus(id, { status, reason });
   }
 
@@ -352,21 +353,21 @@ class RecruitmentService extends BaseService<
    */
   async getByStatus(status: RecruitmentStatus): Promise<RecruitmentProcess[]> {
     const response = await this.list({ status } as RecruitmentListParams);
-    return response.data;
+    return response!.data;
   }
 
   /**
    * Obtener procesos activos
    */
   async getActive(): Promise<RecruitmentProcess[]> {
-    return this.getByStatus('Active');
+    return this.getByStatus('ACTIVE');
   }
 
   /**
    * Obtener procesos completados
    */
   async getCompleted(): Promise<RecruitmentProcess[]> {
-    return this.getByStatus('Completed');
+    return this.getByStatus('COMPLETED');
   }
 
   /**
@@ -375,7 +376,7 @@ class RecruitmentService extends BaseService<
   async updateRecruitmentProcess(
     id: string, 
     request: UpdateRecruitmentRequest
-  ): Promise<RecruitmentProcess> {
+  ): Promise<RecruitmentProcess | undefined> {
     await this.validateAuth();
 
     try {
@@ -392,7 +393,7 @@ class RecruitmentService extends BaseService<
    */
   async getByDepartment(department: string): Promise<RecruitmentProcess[]> {
     const response = await this.list({ department } as RecruitmentListParams);
-    return response.data;
+    return response!.data;
   }
 
   // ==================== MÃ©todos de control de estado ====================
@@ -400,29 +401,29 @@ class RecruitmentService extends BaseService<
   /**
    * Pausar proceso de reclutamiento
    */
-  async pause(id: string, reason?: string): Promise<RecruitmentProcess> {
-    return this.updateStatus(id, { status: 'Paused', reason });
+  async pause(id: string, reason?: string): Promise<RecruitmentProcess | undefined> {
+    return this.updateStatus(id, { status: 'PAUSED', reason });
   }
 
   /**
    * Reanudar proceso de reclutamiento
    */
-  async resume(id: string, reason?: string): Promise<RecruitmentProcess> {
-    return this.updateStatus(id, { status: 'Active', reason });
+  async resume(id: string, reason?: string): Promise<RecruitmentProcess | undefined> {
+    return this.updateStatus(id, { status: 'ACTIVE', reason });
   }
 
   /**
    * Completar proceso de reclutamiento
    */
-  async complete(id: string, reason?: string): Promise<RecruitmentProcess> {
-    return this.updateStatus(id, { status: 'Completed', reason });
+  async complete(id: string, reason?: string): Promise<RecruitmentProcess | undefined> {
+    return this.updateStatus(id, { status: 'COMPLETED', reason });
   }
 
   /**
    * Cancelar proceso de reclutamiento
    */
-  async cancel(id: string, reason?: string): Promise<RecruitmentProcess> {
-    return this.updateStatus(id, { status: 'Cancelled', reason });
+  async cancel(id: string, reason?: string): Promise<RecruitmentProcess | undefined> {
+    return this.updateStatus(id, { status: 'CANCELLED', reason });
   }
 
   // ==================== MÃ©todos de candidatos simplificados ====================
@@ -435,7 +436,7 @@ class RecruitmentService extends BaseService<
     profileLink: string,
     profileName: string,
     additionalData?: Partial<AssociateCandidatesRequest>
-  ): Promise<AssociateCandidatesResponse> {
+  ): Promise<AssociateCandidatesResponse | undefined> {
     return this.associateCandidates(id, { 
       profileLink, 
       profileName,
@@ -449,14 +450,14 @@ class RecruitmentService extends BaseService<
   async associateCandidates(
     id: string,
     request: AssociateCandidatesRequest
-  ): Promise<AssociateCandidatesResponse> {
+  ): Promise<AssociateCandidatesResponse | undefined> {
     try {
-      const data = await this.customOperation<AssociateCandidatesResponse>(
+      const data = (await this.customOperation<AssociateCandidatesResponse>(
         id,
         'candidates',
         request,
         'POST'
-      );
+      ))!;
 
       toast.success(`Successfully created candidate: ${data.firstName} ${data.lastName}`);
       return data;
@@ -470,17 +471,17 @@ class RecruitmentService extends BaseService<
    */
   async getCandidatesByStatus(id: string, status: CandidateStatus): Promise<Candidate[]> {
     const response = await this.getCandidates(id, { status });
-    return response.data;
+    return response!.data;
   }
 
   /**
    * Obtener informaciÃ³n completa del proceso (proceso + mÃ©tricas + timeline)
    */
   async getFullDetails(id: string): Promise<{
-    process: RecruitmentProcess;
-    metrics: RecruitmentMetrics;
-    timeline: RecruitmentTimeline;
-  }> {
+    process: RecruitmentProcess | undefined;
+    metrics: RecruitmentMetrics | undefined;
+    timeline: RecruitmentTimeline | undefined;
+  } | undefined> {
     await this.validateAuth();
 
     try {
@@ -504,9 +505,9 @@ class RecruitmentService extends BaseService<
   async publishToLinkedIn(
     id: string,
     params: Omit<CreatePublicationRequest, 'platform'>
-  ): Promise<Publication> {
+  ): Promise<Publication | undefined> {
     return this.createPublication(id, {
-      platform: 'LinkedIn',
+      platform: 'LINKEDIN',
       ...params
     });
   }
@@ -517,9 +518,9 @@ class RecruitmentService extends BaseService<
   async publishToIndeed(
     id: string,
     params: Omit<CreatePublicationRequest, 'platform'>
-  ): Promise<Publication> {
+  ): Promise<Publication | undefined> {
     return this.createPublication(id, {
-      platform: 'Indeed',
+      platform: 'INDEED',
       ...params
     });
   }
@@ -530,9 +531,9 @@ class RecruitmentService extends BaseService<
   async publishToComputrabajo(
     id: string,
     params: Omit<CreatePublicationRequest, 'platform'>
-  ): Promise<Publication> {
+  ): Promise<Publication | undefined> {
     return this.createPublication(id, {
-      platform: 'Computrabajo',
+      platform: 'COMPUTRABAJO',
       ...params
     });
   }
@@ -542,39 +543,39 @@ class RecruitmentService extends BaseService<
    */
   async getPublicationsByPlatform(
     id: string,
-    platform: 'LinkedIn' | 'Computrabajo' | 'Indeed' | 'Glassdoor' | 'CompanyWebsite' | 'Other'
+    platform: PublicationPlatform
   ): Promise<Publication[]> {
     const response = await this.getPublications(id, { platform });
-    return response.data;
+    return response!.data;
   }
 
   /**
    * Obtener publicaciones activas
    */
   async getActivePublications(id: string): Promise<Publication[]> {
-    const response = await this.getPublications(id, { status: 'Published' });
-    return response.data;
+    const response = await this.getPublications(id, { status: 'PUBLISHED' });
+    return response!.data;
   }
 
   /**
    * Suspender una publicación
    */
-  async suspendPublication(id: string, publicationId: string): Promise<Publication> {
-    return this.updatePublication(id, publicationId, { status: 'Suspended' });
+  async suspendPublication(id: string, publicationId: string): Promise<Publication | undefined> {
+    return this.updatePublication(id, publicationId, { status: 'SUSPENDED' });
   }
 
   /**
    * Reactivar una publicación suspendida
    */
-  async reactivatePublication(id: string, publicationId: string): Promise<Publication> {
-    return this.updatePublication(id, publicationId, { status: 'Published' });
+  async reactivatePublication(id: string, publicationId: string): Promise<Publication | undefined> {
+    return this.updatePublication(id, publicationId, { status: 'PUBLISHED' });
   }
 
   /**
    * Archivar una publicación
    */
-  async archivePublication(id: string, publicationId: string): Promise<Publication> {
-    return this.updatePublication(id, publicationId, { status: 'Archived' });
+  async archivePublication(id: string, publicationId: string): Promise<Publication | undefined> {
+    return this.updatePublication(id, publicationId, { status: 'ARCHIVED' });
   }
 
   // ==================== Operaciones en lote ====================
@@ -746,19 +747,19 @@ class RecruitmentService extends BaseService<
   /**
    * Obtener estadÃ­sticas resumidas de todos los procesos
    */
-  async getSummaryStats(params?: Partial<RecruitmentListParams>): Promise<RecruitmentSummaryStats> {
+  async getSummaryStats(params?: Partial<RecruitmentListParams>): Promise<RecruitmentSummaryStats | undefined> {
     await this.validateAuth();
 
     try {
       const response = await this.list({ ...params, limit: 100 } as RecruitmentListParams);
-      const processes = response.data;
+      const processes = response!.data;
 
       const stats: RecruitmentSummaryStats = {
-        total: response.pagination.total,
-        active: processes.filter(p => p.status === 'Active').length,
-        completed: processes.filter(p => p.status === 'Completed').length,
-        paused: processes.filter(p => p.status === 'Paused').length,
-        cancelled: processes.filter(p => p.status === 'Cancelled').length,
+        total: response!.pagination.total,
+        active: processes.filter(p => p.status === 'ACTIVE').length,
+        completed: processes.filter(p => p.status === 'COMPLETED').length,
+        paused: processes.filter(p => p.status === 'PAUSED').length,
+        cancelled: processes.filter(p => p.status === 'CANCELLED').length,
         totalCandidates: processes.reduce((sum, p) => sum + p.metrics.totalCandidates, 0),
         avgTimeToHire: processes.length > 0 
           ? processes.reduce((sum, p) => sum + p.metrics.timeToHire, 0) / processes.length 
@@ -789,25 +790,25 @@ class RecruitmentService extends BaseService<
   /**
    * Aprobar proceso (solo managers)
    */
-  async approve(id: string, reason?: string): Promise<RecruitmentProcess> {
+  async approve(id: string, reason?: string): Promise<RecruitmentProcess | undefined> {
     if (!this.hasRole('hr-manager')) {
       toast.error('Solo los managers pueden aprobar procesos');
       throw new Error('Insufficient permissions to approve recruitment process');
     }
     
-    return this.updateStatus(id, { status: 'Active', reason: reason || 'Approved by manager' });
+    return this.updateStatus(id, { status: 'ACTIVE', reason: reason || 'Approved by manager' });
   }
 
   /**
    * Rechazar proceso (solo managers)
    */
-  async reject(id: string, reason: string): Promise<RecruitmentProcess> {
+  async reject(id: string, reason: string): Promise<RecruitmentProcess | undefined> {
     if (!this.hasRole('hr-manager')) {
       toast.error('Solo los managers pueden rechazar procesos');
       throw new Error('Insufficient permissions to reject recruitment process');
     }
     
-    return this.updateStatus(id, { status: 'Cancelled', reason });
+    return this.updateStatus(id, { status: 'CANCELLED', reason });
   }
 
   /**
@@ -817,7 +818,7 @@ class RecruitmentService extends BaseService<
     id: string,
     candidateId: string,
     request: CandidateEmailUpdateRequest
-  ): Promise<CandidateEmailUpdateData> {
+  ): Promise<CandidateEmailUpdateData | undefined> {
     await this.validateAuth();
 
     try {

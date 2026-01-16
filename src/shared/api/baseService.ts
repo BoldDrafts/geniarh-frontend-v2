@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { httpClient } from './httpClient';
 import { authService } from './authService';
 import { Pagination } from '../../features/recruitment/types/shared';
+import { RecruitmentListResponse } from '../../features/recruitment/types/recruitmentProcess';
 
 export interface PaginationParams {
   page?: number;
@@ -86,7 +87,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
    */
   async list<P extends PaginationParams = PaginationParams>(
     params?: P
-  ): Promise<PaginatedResponse<T>> {
+  ): Promise<RecruitmentListResponse | undefined> {
     await this.validateAuth();
 
     try {
@@ -98,7 +99,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
         sortOrder: params?.sortOrder || 'desc'
       };
 
-      const response: AxiosResponse<PaginatedResponse<T>> = await httpClient.get(
+      const response: AxiosResponse<RecruitmentListResponse> = await httpClient.get(
         this.buildUrl(),
         { params: queryParams }
       );
@@ -112,7 +113,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
   /**
    * Obtener un recurso por ID
    */
-  async get(id: string): Promise<T> {
+  async get(id: string): Promise<T | undefined> {
     await this.validateAuth();
 
     try {
@@ -126,7 +127,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
   /**
    * Crear un nuevo recurso
    */
-  async create(data: CreateT): Promise<T> {
+  async create(data: CreateT): Promise<T | undefined> {
     await this.validateAuth();
 
     try {
@@ -141,7 +142,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
   /**
    * Actualizar un recurso existente
    */
-  async update(id: string, data: UpdateT): Promise<T> {
+  async update(id: string, data: UpdateT): Promise<T | undefined> {
     await this.validateAuth();
 
     try {
@@ -156,7 +157,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
   /**
    * Actualización parcial de un recurso
    */
-  async patch(id: string, data: Partial<UpdateT>): Promise<T> {
+  async patch(id: string, data: Partial<UpdateT>): Promise<T | undefined> {
     await this.validateAuth();
 
     try {
@@ -190,7 +191,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
     operation: string,
     data?: any,
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'POST'
-  ): Promise<R> {
+  ): Promise<R | undefined> {
     await this.validateAuth();
 
     try {
@@ -230,7 +231,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
     operation: string,
     data: any,
     method: 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'POST'
-  ): Promise<R> {
+  ): Promise<R | undefined> {
     await this.validateAuth();
 
     try {
@@ -263,7 +264,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
   /**
    * Buscar recursos con criterios específicos
    */
-  async search<P = any>(criteria: P): Promise<PaginatedResponse<T>> {
+  async search<P = any>(criteria: P): Promise<PaginatedResponse<T> | undefined> {
     await this.validateAuth();
 
     try {
@@ -281,7 +282,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
   /**
    * Obtener estadísticas o métricas del recurso
    */
-  async getStats<S = any>(params?: any): Promise<S> {
+  async getStats<S = any>(params?: any): Promise<S | undefined> {
     await this.validateAuth();
 
     try {
@@ -299,7 +300,7 @@ export abstract class BaseService<T = any, CreateT = Partial<T>, UpdateT = Parti
   /**
    * Exportar datos en diferentes formatos
    */
-  async export(format: 'csv' | 'excel' | 'pdf' = 'csv', params?: any): Promise<Blob> {
+  async export(format: 'csv' | 'excel' | 'pdf' = 'csv', params?: any): Promise<Blob | undefined> {
     await this.validateAuth();
 
     try {

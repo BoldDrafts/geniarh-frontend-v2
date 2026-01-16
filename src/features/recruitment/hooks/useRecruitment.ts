@@ -1,17 +1,17 @@
 // hooks/useRecruitment.ts
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { recruitmentService } from '../api/recruitmentService';
 import {
-  RecruitmentProcess,
-  RecruitmentStatus,
   RecruitmentFiltersType,
   RecruitmentListParams,
-  RecruitmentProcess
+  RecruitmentListResponse,
+  RecruitmentProcess,
+  RecruitmentStatus
 } from '../types/recruitment';
-import { useLoading } from './useLoading';
-import { useFullScreenLoading } from './useFullScreenLoading';
 import { RECRUITMENT_LOADING_KEYS } from '../utils/loadingKeys';
+import { useFullScreenLoading } from './useFullScreenLoading';
+import { useLoading } from './useLoading';
 
 interface Pagination {
   current: number;
@@ -29,7 +29,7 @@ export const useRecruitment = () => {
   // State
   const [recruitmentProcesses, setRecruitmentProcesses] = useState<RecruitmentProcess[]>([]);
   const [selectedRecruitment, setSelectedRecruitment] = useState<RecruitmentProcess | null>(null);
-  const [activeTab, setActiveTab] = useState<RecruitmentStatus>('Active');
+  const [activeTab, setActiveTab] = useState<RecruitmentStatus>('ACTIVE');
   const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState<Pagination>({
     current: 1,
@@ -66,7 +66,7 @@ export const useRecruitment = () => {
         ...(filters.priority && { priority: filters.priority })
       };
 
-      const response = await recruitmentService.list(params);
+      const response : RecruitmentListResponse = (await recruitmentService.list(params))!;
       
       setRecruitmentProcesses(response.data);
       setPagination({
@@ -77,6 +77,7 @@ export const useRecruitment = () => {
         hasNext: response.pagination.hasNext || false,
         hasPrevious: response.pagination.hasPrevious || false
       });
+      
     }, {
       onError: (error) => {
         console.error('Error loading recruitment processes:', error);
@@ -93,7 +94,7 @@ export const useRecruitment = () => {
       'row-click',
       async () => {
         const detailedProcess = await recruitmentService.get(process.id);
-        setSelectedRecruitment(detailedProcess);
+        setSelectedRecruitment(detailedProcess!);
         return detailedProcess;
       },
       {

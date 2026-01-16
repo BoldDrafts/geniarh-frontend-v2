@@ -1,22 +1,15 @@
 // ==================== TIPOS BASE PARA FECHAS DE VENCIMIENTO POR ETAPA ====================
 
-/**
- * Enumeración de etapas del proceso de reclutamiento
- */
-export type StageEnum = 
-  | 'applied'
-  | 'screening'
-  | 'technical'
-  | 'cultural'
-  | 'offer'
-  | 'hired';
+import { RecruitmentStageEnum, StageStatusEnum } from "./base";
 
 /**
  * Interfaz para una fecha de vencimiento por etapa
  */
 export interface StageDueDate {
   id: string;
-  stage: StageEnum;
+  stage: RecruitmentStageEnum;
+  status: StageStatusEnum;
+  description: string;
   dueDate: string; // YYYY-MM-DD format
   alertDays?: number; // Días antes para enviar alerta
   isCompleted: boolean;
@@ -30,7 +23,7 @@ export interface StageDueDate {
  * Interfaz para crear una nueva fecha de vencimiento
  */
 export interface CreateStageDueDateRequest {
-  stage: StageEnum;
+  stage: RecruitmentStageEnum;
   dueDate: string; // YYYY-MM-DD format
   alertDays?: number;
   notes?: string;
@@ -50,7 +43,7 @@ export interface UpdateStageDueDateRequest {
  * Parámetros para filtrar fechas de vencimiento
  */
 export interface StageDueDateFilterParams {
-  stage?: StageEnum;
+  stage?: RecruitmentStageEnum;
   isOverdue?: boolean;
   isCompleted?: boolean;
   page?: number;
@@ -115,7 +108,7 @@ export interface StageDueDateStats {
  * Interfaz para resumen de fechas de vencimiento por etapa
  */
 export interface StageDueDateSummary {
-  stage: StageEnum;
+  stage: RecruitmentStageEnum;
   dueDate: string;
   isCompleted: boolean;
   daysOverdue?: number;
@@ -131,6 +124,6 @@ export interface StageDueDateSummary {
  */
 export interface StageDueDateError extends Error {
   code: 'STAGE_DUE_DATE_EXISTS' | 'INVALID_DUE_DATE' | 'STAGE_NOT_FOUND' | 'INVALID_STAGE';
-  stage?: StageEnum;
+  stage?: RecruitmentStageEnum;
   details?: any;
 }

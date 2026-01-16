@@ -3,16 +3,15 @@ import React from 'react';
 import { useRecruitmentForm } from '../hooks/useRecruitmentForm';
 
 // Components
+import { NewRecruitmentFormProps } from '../types/recruitmentFormTypes';
 import AIAssistantBanner from './AIAssistantBanner';
 import JobDescriptionEditor from './form/JobDescriptionEditor';
 import SkillsManager from './form/SkillsManager';
 import FormActions from './FormActions';
 import FormHeader from './FormHeader';
-import AIToggleSection from './sections/AIToggleSection';
-import BasicInfoSection from './sections/BasicInfoSection';
-import SalarySection from './sections/SalarySection';
 import RecruitmentStagesWithDates from './RecruitmentStagesWithDates';
-import { NewRecruitmentFormProps } from '../types/recruitmentFormTypes';
+import BasicInfoSection from './sections/BasicInfoSection';
+import { getRecruitmentStages } from '../utils/recruitmentUtils';
 
 const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
   onClose,
@@ -35,9 +34,10 @@ const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
     setNewSoftSkill,
     handleAddSoftSkill,
     handleRemoveSoftSkill,
-    // Recruitment Stages
+
     recruitmentStages,
     handleStageDueDateChange,
+    
     // Recruiters
     recruiters,
     loadingRecruiters,
@@ -105,11 +105,12 @@ const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
           />
 
           {/* Recruitment Stages with Due Dates */}
-          <RecruitmentStagesWithDates
-            stages={recruitmentStages}
+          {initialData && <RecruitmentStagesWithDates
+            stages={getRecruitmentStages(initialData!)}
             onStageDateChange={handleStageDueDateChange}
             disabled={isSubmitting}
-          />
+            recruitmentId={initialData?.requirement.id!}
+          />}
 
           {/* AI Toggle Section */}
           {/* <AIToggleSection useAI={useAI} onToggle={setUseAI} /> */}

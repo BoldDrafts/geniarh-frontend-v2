@@ -1,8 +1,12 @@
 // utils/recruitmentUtils.ts
+import { HealthScoreStatus, QualityLevel } from '../types/base';
 import { 
   RecruitmentProcess, 
   RecruitmentStatus, 
-  RecruitmentStage 
+  RecruitmentStage, 
+  PublicationPlatform,
+  PublicationStatus,
+  Priority
 } from '../types/recruitment';
 
 // Format date helper
@@ -17,10 +21,10 @@ export const formatDate = (dateString: string): string => {
 // Get status color
 export const getStatusColor = (status: RecruitmentStatus): string => {
   switch (status) {
-    case 'Active': return 'bg-green-100 text-green-800';
-    case 'Paused': return 'bg-yellow-100 text-yellow-800';
-    case 'Completed': return 'bg-blue-100 text-blue-800';
-    case 'Cancelled': return 'bg-red-100 text-red-800';
+    case 'ACTIVE': return 'bg-green-100 text-green-800';
+    case 'PAUSED': return 'bg-yellow-100 text-yellow-800';
+    case 'COMPLETED': return 'bg-blue-100 text-blue-800';
+    case 'CANCELLED': return 'bg-red-100 text-red-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
@@ -28,31 +32,31 @@ export const getStatusColor = (status: RecruitmentStatus): string => {
 // Get status icon component
 export const getStatusIconName = (status: RecruitmentStatus): string => {
   switch (status) {
-    case 'Active': return 'CheckCircle';
-    case 'Paused': return 'Clock';
-    case 'Completed': return 'CheckCircle';
-    case 'Cancelled': return 'AlertCircle';
+    case 'ACTIVE': return 'CheckCircle';
+    case 'PAUSED': return 'Clock';
+    case 'COMPLETED': return 'CheckCircle';
+    case 'CANCELLED': return 'AlertCircle';
     default: return 'Clock';
   }
 };
 
 // Get platform color
-export const getPlatformColor = (platform: string): string => {
+export const getPlatformColor = (platform: PublicationPlatform): string => {
   switch (platform) {
-    case 'LinkedIn': return 'bg-blue-100 text-blue-800';
-    case 'Computrabajo': return 'bg-green-100 text-green-800';
-    case 'Indeed': return 'bg-purple-100 text-purple-800';
+    case 'LINKEDIN': return 'bg-blue-100 text-blue-800';
+    case 'COMPUTRABAJO': return 'bg-green-100 text-green-800';
+    case 'INDEED': return 'bg-purple-100 text-purple-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
 
 // Get publication status color
-export const getPublicationStatusColor = (status: string): string => {
+export const getPublicationStatusColor = (status: PublicationStatus): string => {
   switch (status) {
-    case 'Published': return 'bg-green-100 text-green-800';
-    case 'Draft': return 'bg-yellow-100 text-yellow-800';
-    case 'Suspended': return 'bg-red-100 text-red-800';
-    case 'Expired': return 'bg-gray-100 text-gray-800';
+    case 'PUBLISHED': return 'bg-green-100 text-green-800';
+    case 'DRAFT': return 'bg-yellow-100 text-yellow-800';
+    case 'SUSPENDED': return 'bg-red-100 text-red-800';
+    case 'EXPIRED': return 'bg-gray-100 text-gray-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
@@ -60,59 +64,59 @@ export const getPublicationStatusColor = (status: string): string => {
 // Generate dynamic stages based on recruitment process state
 export const getRecruitmentStages = (process: RecruitmentProcess): RecruitmentStage[] => {
   const hasPublications = process.publications && process.publications.length > 0;
-  const hasActivePublications = hasPublications && process.publications.some(pub => pub.status === 'Published');
+  const hasActivePublications = hasPublications && process.publications.some(pub => pub.status === 'PUBLISHED');
   const hasCandidates = process.metrics.totalCandidates > 0;
   const hasInterviews = process.metrics.interviewsScheduled > 0;
   const hasOffers = process.metrics.offersExtended > 0;
-  const isCompleted = process.status === 'Completed';
-  const isCancelled = process.status === 'Cancelled';
+  const isCompleted = process.status === 'COMPLETED';
+  const isCancelled = process.status === 'CANCELLED';
 
   const stages: RecruitmentStage[] = [
     {
       name: 'Created',
-      status: 'complete',
+      status: 'COMPLETE',
       description: 'Recruitment process created'
     },
     {
       name: 'Published',
-      status: hasActivePublications ? 'complete' : 
-              hasPublications ? 'current' : 'upcoming',
+      status: hasActivePublications ? 'COMPLETE' : 
+              hasPublications ? 'CURRENT' : 'UPCOMING',
       description: hasActivePublications ? 'Job posted on platforms' : 
                   hasPublications ? 'Preparing publications' : 'Ready to publish'
     },
     {
       name: 'Sourcing',
-      status: hasCandidates ? 'complete' :
-              hasActivePublications ? 'current' : 'upcoming',
+      status: hasCandidates ? 'COMPLETE' :
+              hasActivePublications ? 'CURRENT' : 'UPCOMING',
       description: hasCandidates ? `${process.metrics.totalCandidates} candidates sourced` :
                   hasActivePublications ? 'Actively sourcing candidates' : 'Awaiting publication'
     },
     {
       name: 'Screening',
-      status: hasInterviews ? 'complete' :
-              hasCandidates ? 'current' : 'upcoming',
+      status: hasInterviews ? 'COMPLETE' :
+              hasCandidates ? 'CURRENT' : 'UPCOMING',
       description: hasInterviews ? `${process.metrics.interviewsScheduled} interviews scheduled` :
                   hasCandidates ? `Screening ${process.metrics.qualifiedCandidates} qualified candidates` : 'No candidates yet'
     },
     {
       name: 'Interviews',
-      status: hasOffers ? 'complete' :
-              hasInterviews ? 'current' : 'upcoming',
+      status: hasOffers ? 'COMPLETE' :
+              hasInterviews ? 'CURRENT' : 'UPCOMING',
       description: hasOffers ? `${process.metrics.offersExtended} offers extended` :
                   hasInterviews ? 'Conducting interviews' : 'Pending interviews'
     },
     {
       name: 'Short List',
-      status: hasOffers ? 'complete' :
-              hasInterviews ? 'current' : 'upcoming',
+      status: hasOffers ? 'COMPLETE' :
+              hasInterviews ? 'CURRENT' : 'UPCOMING',
       description: hasOffers ? `${process.metrics.offersExtended} offers extended` :
                   hasInterviews ? 'Conducting interviews' : 'Pending interviews'
     },
     {
       name: 'Hiring',
-      status: isCompleted ? 'complete' :
-              isCancelled ? 'cancelled' :
-              hasOffers ? 'current' : 'upcoming',
+      status: isCompleted ? 'COMPLETE' :
+              isCancelled ? 'CANCELLED' :
+              hasOffers ? 'CURRENT' : 'UPCOMING',
       description: isCompleted ? 'Position filled successfully' :
                   isCancelled ? 'Recruitment cancelled' :
                   hasOffers ? `Awaiting offer responses (${process.metrics.offerAcceptanceRate.toFixed(0)}% acceptance rate)` : 'No offers yet'
@@ -125,19 +129,19 @@ export const getRecruitmentStages = (process: RecruitmentProcess): RecruitmentSt
 // Calculate completion percentage
 export const getCompletionPercentage = (process: RecruitmentProcess): number => {
   const stages = getRecruitmentStages(process);
-  const completedStages = stages.filter(stage => stage.status === 'complete').length;
+  const completedStages = stages.filter(stage => stage.status === 'COMPLETE').length;
   return Math.round((completedStages / stages.length) * 100);
 };
 
 // Get priority color
-export const getPriorityColor = (priority: string): string => {
+export const getPriorityColor = (priority: Priority): string => {
   switch (priority) {
-    case 'High': 
-    case 'Urgent': 
+    case 'HIGH': 
+    case 'URGENT': 
       return 'bg-red-100 text-red-800';
-    case 'Medium': 
+    case 'MEDIUM': 
       return 'bg-yellow-100 text-yellow-800';
-    case 'Low': 
+    case 'LOW': 
       return 'bg-green-100 text-green-800';
     default: 
       return 'bg-gray-100 text-gray-800';
@@ -151,13 +155,13 @@ export const formatSalaryRange = (min: number, max: number, currency: string): s
 
 // Get candidate quality indicator
 export const getCandidateQualityIndicator = (process: RecruitmentProcess): {
-  quality: 'high' | 'medium' | 'low';
+  quality: QualityLevel;
   percentage: number;
   message: string;
 } => {
   if (process.metrics.totalCandidates === 0) {
     return {
-      quality: 'low',
+      quality: 'LOW',
       percentage: 0,
       message: 'No candidates yet'
     };
@@ -168,19 +172,19 @@ export const getCandidateQualityIndicator = (process: RecruitmentProcess): {
 
   if (qualityRatio >= 0.6) {
     return {
-      quality: 'high',
+      quality: 'HIGH',
       percentage,
       message: 'Excellent candidate quality'
     };
   } else if (qualityRatio >= 0.3) {
     return {
-      quality: 'medium',
+      quality: 'MEDIUM',
       percentage,
       message: 'Good candidate quality'
     };
   } else {
     return {
-      quality: 'low',
+      quality: 'LOW',
       percentage,
       message: 'Low candidate quality - consider refining requirements'
     };
@@ -190,7 +194,7 @@ export const getCandidateQualityIndicator = (process: RecruitmentProcess): {
 // Get recruitment health score
 export const getRecruitmentHealthScore = (process: RecruitmentProcess): {
   score: number;
-  status: 'excellent' | 'good' | 'warning' | 'critical';
+  status: HealthScoreStatus;
   recommendations: string[];
 } => {
   let score = 0;
@@ -198,7 +202,7 @@ export const getRecruitmentHealthScore = (process: RecruitmentProcess): {
 
   // Publications (25 points)
   if (process.publications && process.publications.length > 0) {
-    const activePublications = process.publications.filter(pub => pub.status === 'Published');
+    const activePublications = process.publications.filter(pub => pub.status === 'PUBLISHED');
     if (activePublications.length > 0) {
       score += 25;
     } else {
@@ -224,12 +228,12 @@ export const getRecruitmentHealthScore = (process: RecruitmentProcess): {
 
   // Candidate quality (25 points)
   const qualityIndicator = getCandidateQualityIndicator(process);
-  if (qualityIndicator.quality === 'high') {
+  if (qualityIndicator.quality === 'HIGH') {
     score += 25;
-  } else if (qualityIndicator.quality === 'medium') {
+  } else if (qualityIndicator.quality === 'MEDIUM') {
     score += 15;
     recommendations.push('Consider refining job requirements to attract better candidates');
-  } else if (qualityIndicator.quality === 'low' && process.metrics.totalCandidates > 0) {
+  } else if (qualityIndicator.quality === 'LOW' && process.metrics.totalCandidates > 0) {
     score += 5;
     recommendations.push('Review and refine job requirements and sourcing strategy');
   }
@@ -246,15 +250,15 @@ export const getRecruitmentHealthScore = (process: RecruitmentProcess): {
   }
 
   // Determine status
-  let status: 'excellent' | 'good' | 'warning' | 'critical';
+  let status: HealthScoreStatus;
   if (score >= 80) {
-    status = 'excellent';
+    status = 'EXCELLENT';
   } else if (score >= 60) {
-    status = 'good';
+    status = 'GOOD';
   } else if (score >= 40) {
-    status = 'warning';
+    status = 'WARNING';
   } else {
-    status = 'critical';
+    status = 'CRITICAL';
   }
 
   return { score, status, recommendations };

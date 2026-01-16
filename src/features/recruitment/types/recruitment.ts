@@ -21,7 +21,8 @@ export type {
   HiringRecommendation,
   SkillLevel,
   LanguageProficiency,
-  EducationLevel
+  EducationLevel,
+  RecruitmentStageEnum
 } from './base';
 
 // ==================== EXPORTAR INTERFACES COMPARTIDAS ====================
@@ -100,7 +101,6 @@ export type {
 
 // ==================== EXPORTAR TIPOS DE FECHAS DE VENCIMIENTO ====================
 export type {
-  StageEnum,
   StageDueDate,
   CreateStageDueDateRequest,
   UpdateStageDueDateRequest,
@@ -147,5 +147,5 @@ export type {
   RecruitmentSettings,
   RecruitmentApproval,
   RecruitmentAuditLog,
-  UpdateRecruitmentRequest 
+  UpdateRecruitmentRequest
 } from './recruitmentProcess';

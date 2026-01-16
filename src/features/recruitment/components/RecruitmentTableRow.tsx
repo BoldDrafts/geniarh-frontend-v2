@@ -153,7 +153,7 @@ const RecruitmentTableRow: React.FC<RecruitmentTableRowProps> = ({
           )}
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(process.status)}`}>
             {getStatusIcon(process.status)}
-            {process.status}
+            {process.statusLabel}
           </span>
         </div>
       </td>
@@ -189,7 +189,7 @@ const RecruitmentTableRow: React.FC<RecruitmentTableRowProps> = ({
             <Share2 className="h-4 w-4" />
           </button>
 
-          {process.status == 'Cancelled' && (<button 
+          {process.status == 'CANCELLED' && (<button 
             onClick={(e) => onDelete(process, e)}
             disabled={isLoading(createLoadingKey(RECRUITMENT_LOADING_KEYS.DELETE_RECRUITMENT, process.id))}
             className="text-red-600 hover:text-red-900 transition-colors disabled:opacity-50"

@@ -7,7 +7,8 @@ export const RECRUITMENT_LOADING_KEYS = {
   CREATE_PUBLICATION: 'create_publication',
   LOAD_RECRUITMENTS: 'load_recruitments',
   LOAD_RECRUITMENT_DETAIL: 'load_recruitment_detail',
-  REFRESH_DATA: 'refresh_data'
+  REFRESH_DATA: 'refresh_data',
+  FETCH_RECRUITMENTS: 'fetch_recruitments'
 } as const;
 
 export const createLoadingKey = (baseKey: string, id?: string): string => {

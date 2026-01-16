@@ -6,44 +6,23 @@ import recruitmentService from '../api/recruitmentService';
 
 export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
   const [useAI, setUseAI] = useState(false);
-  
+
   // Technical Skills (existing)
   const [skills, setSkills] = useState<string[]>(initialData?.requirement.skills || []);
   const [newSkill, setNewSkill] = useState('');
-  
+
   // Soft Skills (new)
   const [softSkills, setSoftSkills] = useState<string[]>(initialData?.requirement.softSkills || []);
   const [newSoftSkill, setNewSoftSkill] = useState('');
-  
+
   // Recruitment Stages with due dates
-  const [recruitmentStages, setRecruitmentStages] = useState<RecruitmentStage[]>(() => {
-    const defaultStages: RecruitmentStage[] = [
-      { name: 'Publicación', status: 'upcoming', description: 'Publicar la vacante' },
-      { name: 'Recepción', status: 'upcoming', description: 'Recibir candidaturas' },
-      { name: 'Screening', status: 'upcoming', description: 'Filtrar candidatos' },
-      { name: 'Entrevista', status: 'upcoming', description: 'Realizar entrevistas' },
-      { name: 'Selección', status: 'upcoming', description: 'Seleccionar finalistas' },
-      { name: 'Oferta', status: 'upcoming', description: 'Extender oferta' }
-    ];
-    
-    if (initialData?.timeline) {
-      return defaultStages.map((stage, index) => {
-        const timelineKey = Object.keys(initialData.timeline)[index];
-        return {
-          ...stage,
-          dueDate: initialData.timeline[timelineKey as keyof typeof initialData.timeline]
-        };
-      });
-    }
-    
-    return defaultStages;
-  });
-  
+  const [recruitmentStages, setRecruitmentStages] = useState<RecruitmentStage[]>([]);
+
   // Recruiters state
   const [recruiters, setRecruiters] = useState<Recruiter[]>([]);
   const [loadingRecruiters, setLoadingRecruiters] = useState(false);
   const [recruitersError, setRecruitersError] = useState<string | null>(null);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [jobDescription, setJobDescription] = useState(initialData?.requirement.description || '');
 
@@ -55,15 +34,15 @@ export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
   const loadRecruiters = async () => {
     setLoadingRecruiters(true);
     setRecruitersError(null);
-    
+
     try {
       const response = await recruitmentService.getAvailableRecruiters({
         page: 1,
         limit: 100 // Load all available recruiters
       });
-      
+
       setRecruiters(response.data);
-      
+
       if (response.data.length === 0) {
         toast.custom('No hay reclutadores disponibles en este momento');
       }
@@ -102,15 +81,15 @@ export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
     }
   };
 
-const handleRemoveSoftSkill = (skillToRemove: string) => {
+  const handleRemoveSoftSkill = (skillToRemove: string) => {
     setSoftSkills(softSkills.filter(skill => skill !== skillToRemove));
   };
 
   // Recruitment Stages handlers
   const handleStageDueDateChange = (stageName: string, dueDate: string) => {
-    setRecruitmentStages(prevStages => 
-      prevStages.map(stage => 
-        stage.name === stageName 
+    setRecruitmentStages(prevStages =>
+      prevStages.map(stage =>
+        stage.name === stageName
           ? { ...stage, dueDate: dueDate || undefined }
           : stage
       )
@@ -118,27 +97,26 @@ const handleRemoveSoftSkill = (skillToRemove: string) => {
   };
 
   const handleSubmit = async (
-    e: React.FormEvent, 
+    e: React.FormEvent,
     onSubmit: (data: any) => void | Promise<void>
   ) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       const formData = new FormData(e.target as HTMLFormElement);
       const data = Object.fromEntries(formData.entries());
       //console.log("form data: ", data);
-      
-// Add skills, soft skills, stages and description to form data
-      const submitData = { 
-        ...data, 
+
+      // Add skills, soft skills, stages and description to form data
+      const submitData = {
+        ...data,
         skills,
         softSkills, // Added soft skills to submit data
-        recruitmentStages, // Add stages with due dates
         description: jobDescription,
-        useAI 
+        useAI
       };
-      
+
       await onSubmit(submitData);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -150,35 +128,37 @@ const handleRemoveSoftSkill = (skillToRemove: string) => {
   return {
     useAI,
     setUseAI,
-    
+
     // Technical Skills
     skills,
     newSkill,
     setNewSkill,
     handleAddSkill,
     handleRemoveSkill,
-    
+
     // Soft Skills
     softSkills,
     newSoftSkill,
     setNewSoftSkill,
     handleAddSoftSkill,
     handleRemoveSoftSkill,
-    
+
     // Recruiters
     recruiters,
     loadingRecruiters,
     recruitersError,
     retryLoadRecruiters,
-    
-// Recruitment Stages
-    recruitmentStages,
+
+    // Recruitment Stages
     handleStageDueDateChange,
-    
+
     // Common
     isSubmitting,
     jobDescription,
     setJobDescription,
-    handleSubmit
+    handleSubmit,
+    
+    recruitmentStages,
+    setRecruitmentStages
   };
 };

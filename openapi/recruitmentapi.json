@@ -5077,6 +5077,34 @@
         ],
         "description": "Recruitment process stages"
       },
+      "RecruitmentStage": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/StageEnum"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in-progress",
+              "complete",
+              "blocked"
+            ],
+            "description": "Status of the recruitment stage",
+            "default": "pending"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Due date for completing this stage"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "description": "Represents a stage in the recruitment process"
+      },
       "StageDueDate": {
         "type": "object",
         "properties": {
