@@ -6,10 +6,14 @@ export interface Requirement {
   title: string;
   department: string;
   priority: RequirementPriority;
+  priorityLabel: string;
   timeframe: RequirementTimeframe;
+  timeframeLabel: string;
   experienceLevel: ExperienceLevel;
+  experienceLevelLabel: string;
   location: string;
   employmentType: EmploymentType;
+  employmentTypeLabel: string;
   salaryMin: number;
   salaryMax: number;
   salaryCurrency: SalaryCurrency;

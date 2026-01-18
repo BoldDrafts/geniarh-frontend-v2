@@ -182,32 +182,32 @@ const RecruitmentViewCandidateModal: React.FC<ViewCandidateModalProps> = ({
   // Get status configuration - SWAGGER COMPLIANT
   const getStatusConfig = (status: CandidateStatus) => {
     switch (status) {
-      case 'new':
+      case 'NEW':
         return { 
           color: 'bg-blue-100 text-blue-800', 
           icon: <Clock className="h-4 w-4 mr-1" /> 
         };
-      case 'contacted':
+      case 'CONTACTED':
         return { 
           color: 'bg-indigo-100 text-indigo-800', 
           icon: <MessageSquare className="h-4 w-4 mr-1" /> 
         };
-      case 'interview':
+      case 'INTERVIEW':
         return { 
           color: 'bg-yellow-100 text-yellow-800', 
           icon: <Calendar className="h-4 w-4 mr-1" /> 
         };
-      case 'offer':
+      case 'OFFER':
         return { 
           color: 'bg-pink-100 text-pink-800', 
           icon: <FileText className="h-4 w-4 mr-1" /> 
         };
-      case 'hired':
+      case 'HIRED':
         return { 
           color: 'bg-emerald-100 text-emerald-800', 
           icon: <CheckCircle className="h-4 w-4 mr-1" /> 
         };
-      case 'rejected':
+      case 'REJECTED':
         return { 
           color: 'bg-red-100 text-red-800', 
           icon: <AlertCircle className="h-4 w-4 mr-1" /> 
@@ -536,9 +536,9 @@ const RecruitmentViewCandidateModal: React.FC<ViewCandidateModalProps> = ({
                         <span className="text-sm font-medium text-gray-900">{lang.language}</span>
                       </div>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        lang.proficiency === 'Native' ? 'bg-green-100 text-green-800' :
-                        lang.proficiency === 'Fluent' ? 'bg-blue-100 text-blue-800' :
-                        lang.proficiency === 'Business' ? 'bg-yellow-100 text-yellow-800' :
+                        lang.proficiency === 'NATIVE' ? 'bg-green-100 text-green-800' :
+                        lang.proficiency === 'FLUENT' ? 'bg-blue-100 text-blue-800' :
+                        lang.proficiency === 'BUSINESS' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
                         {lang.proficiency}

@@ -10,7 +10,7 @@ interface RecruitmentStagesWithDatesProps {
   recruitmentId: string;
 }
 
-type OveralStatusEnum = 'overdue' | 'urgent' | 'warning' | 'gray' | 'normal';
+export type OveralStatusEnum = 'OVERDUE' | 'URGENT' | 'WARNING' | 'GRAY' | 'NORMAL' | 'COMPLETED' | 'NONE';
 
 interface OverallStatusDto {
   status: OveralStatusEnum;
@@ -35,7 +35,7 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
     let hasWarning = false;
     
     for (const stage of stages) {
-      if (!stage.dueDate || stage.status === 'complete') continue;
+      if (!stage.dueDate || stage.status === 'COMPLETE') continue;
       
       const dueDate = new Date(stage.dueDate);
       dueDate.setHours(0, 0, 0, 0);
@@ -53,10 +53,10 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
       }
     }
     
-    if (hasOverdue) return { status: 'overdue', color: 'red', text: 'Hay etapas vencidas' };
-    if (hasUrgent) return { status: 'urgent', color: 'orange', text: 'Hay etapas próximas a vencer (≤ 3 días)' };
-    if (hasWarning) return { status: 'warning', color: 'yellow', text: 'Hay etapas con fecha cercana (≤ 7 días)' };
-    return { status: 'normal', color: 'gray', text: 'Todas las etapas están en tiempo' };
+    if (hasOverdue) return { status: 'OVERDUE', color: 'red', text: 'Hay etapas vencidas' };
+    if (hasUrgent) return { status: 'URGENT', color: 'orange', text: 'Hay etapas próximas a vencer (≤ 3 días)' };
+    if (hasWarning) return { status: 'WARNING', color: 'yellow', text: 'Hay etapas con fecha cercana (≤ 7 días)' };
+    return { status: 'NORMAL', color: 'GRAY', text: 'Todas las etapas están en tiempo' };
   };
 
   const overallStatus = getOverallStatus();
@@ -74,7 +74,7 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
 
       {/* Grid de etapas con selectores de fecha */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stages.map((stage) => (
+        {stages.filter((stage) => stage.name != 'Created').map((stage) => (
           <StageDateSelector
             key={stage.name}
             stage={stage}
@@ -108,7 +108,7 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
               let statusColor = 'text-gray-600';
               let statusText = '';
               
-              if (stage.status === 'complete') {
+              if (stage.status === 'COMPLETE') {
                 statusColor = 'text-green-600';
                 statusText = 'Completado';
               } else if (diffDays < 0) {

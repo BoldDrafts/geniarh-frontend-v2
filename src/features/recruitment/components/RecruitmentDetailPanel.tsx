@@ -67,13 +67,13 @@ const RecruitmentDetailPanel: React.FC<RecruitmentDetailPanelProps> = ({
                   <div>
                     <div className="text-sm text-gray-500">Experience Level</div>
                     <div className="text-sm font-medium text-gray-900">
-                      {recruitment.requirement.experienceLevel}
+                      {recruitment.requirement.experienceLevelLabel}
                     </div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-500">Employment Type</div>
                     <div className="text-sm font-medium text-gray-900">
-                      {recruitment.requirement.employmentType}
+                      {recruitment.requirement.employmentTypeLabel}
                     </div>
                   </div>
                   <div>
@@ -85,7 +85,7 @@ const RecruitmentDetailPanel: React.FC<RecruitmentDetailPanelProps> = ({
                   <div>
                     <div className="text-sm text-gray-500">Timeframe</div>
                     <div className="text-sm font-medium text-gray-900">
-                      {recruitment.requirement.timeframe}
+                      {recruitment.requirement.timeframeLabel}
                     </div>
                   </div>
                 </div>

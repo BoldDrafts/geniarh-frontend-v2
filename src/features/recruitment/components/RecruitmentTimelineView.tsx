@@ -23,12 +23,12 @@ const RecruitmentTimelineView: React.FC<RecruitmentTimelineViewProps> = ({
   }));
 
   const getTimelineSummary = () => {
-    const completedStages = stages.filter(s => s.status === 'complete').length;
-    const currentStages = stages.filter(s => s.status === 'current').length;
+    const completedStages = stages.filter(s => s.status === 'COMPLETE').length;
+    const currentStages = stages.filter(s => s.status === 'CURRENT').length;
     const totalStages = stages.length;
     
     const hasOverdue = stages.some(stage => {
-      if (!stage.dueDate || stage.status === 'complete') return false;
+      if (!stage.dueDate || stage.status === 'COMPLETE') return false;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const dueDate = new Date(stage.dueDate);
@@ -140,9 +140,9 @@ const RecruitmentTimelineView: React.FC<RecruitmentTimelineViewProps> = ({
               <div key={stage.name} className="flex items-center space-x-3">
                 <div className={`
                   w-3 h-3 rounded-full flex-shrink-0
-                  ${stage.status === 'complete' ? 'bg-green-500' : 
-                    stage.status === 'current' ? 'bg-blue-500' : 
-                    stage.status === 'cancelled' ? 'bg-red-500' : 
+                  ${stage.status === 'COMPLETE' ? 'bg-green-500' : 
+                    stage.status === 'CURRENT' ? 'bg-blue-500' : 
+                    stage.status === 'CANCELLED' ? 'bg-red-500' : 
                     'bg-gray-300'}
                 `} />
                 
@@ -151,14 +151,14 @@ const RecruitmentTimelineView: React.FC<RecruitmentTimelineViewProps> = ({
                     <div>
                       <span className="text-sm font-medium text-gray-900">{stage.name}</span>
                       <span className={`ml-2 text-xs px-2 py-1 rounded-full ${
-                        stage.status === 'complete' ? 'bg-green-100 text-green-800' : 
-                        stage.status === 'current' ? 'bg-blue-100 text-blue-800' : 
-                        stage.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
+                        stage.status === 'COMPLETE' ? 'bg-green-100 text-green-800' : 
+                        stage.status === 'CURRENT' ? 'bg-blue-100 text-blue-800' : 
+                        stage.status === 'CANCELLED' ? 'bg-red-100 text-red-800' : 
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {stage.status === 'complete' ? 'Completado' : 
-                         stage.status === 'current' ? 'En progreso' : 
-                         stage.status === 'cancelled' ? 'Cancelado' : 
+                        {stage.status === 'COMPLETE' ? 'Completado' : 
+                         stage.status === 'CURRENT' ? 'En progreso' : 
+                         stage.status === 'CANCELLED' ? 'Cancelado' : 
                          'Pendiente'}
                       </span>
                     </div>

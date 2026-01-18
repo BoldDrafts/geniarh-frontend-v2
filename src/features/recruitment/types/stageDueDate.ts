@@ -104,6 +104,8 @@ export interface StageDueDateStats {
   completionRate: number;
 }
 
+export type StageDueDateSummaryEnum = 'COMPLETED' | 'ON_TIME' | 'OVERDUE' | 'ALERT_DUE';
+
 /**
  * Interfaz para resumen de fechas de vencimiento por etapa
  */
@@ -114,16 +116,18 @@ export interface StageDueDateSummary {
   daysOverdue?: number;
   daysUntilDue?: number;
   alertDays?: number;
-  status: 'completed' | 'on-time' | 'overdue' | 'alert-due';
+  status: StageDueDateSummaryEnum;
 }
 
 // ==================== TIPOS DE ERROR ESPECÍFICOS ====================
+
+export type StageDueDateErrorEnum = 'STAGE_DUE_DATE_EXISTS' | 'INVALID_DUE_DATE' | 'STAGE_NOT_FOUND' | 'INVALID_STAGE';
 
 /**
  * Error específico para fechas de vencimiento
  */
 export interface StageDueDateError extends Error {
-  code: 'STAGE_DUE_DATE_EXISTS' | 'INVALID_DUE_DATE' | 'STAGE_NOT_FOUND' | 'INVALID_STAGE';
+  code: StageDueDateErrorEnum;
   stage?: RecruitmentStageEnum;
   details?: any;
 }

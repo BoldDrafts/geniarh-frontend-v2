@@ -113,10 +113,10 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           >
             <option value="">Seleccionar tipo</option>
-            <option value="Full-time">Tiempo Completo</option>
-            <option value="Part-time">Tiempo Parcial</option>
-            <option value="Contract">Contrato</option>
-            <option value="Internship">Práctica</option>
+            <option value="FULL_TIME">Tiempo Completo</option>
+            <option value="PART_TIME">Tiempo Parcial</option>
+            <option value="CONTRACT">Contrato</option>
+            <option value="INTERNSHIP">Práctica</option>
           </select>
         </div>
 
@@ -129,13 +129,13 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
             name="priority"
             id="priority"
             required
-            defaultValue={initialData?.requirement.priority || 'Medium'}
+            defaultValue={initialData?.requirement.priority || 'MEDIUM'}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           >
-            <option value="Low">Baja</option>
-            <option value="Medium">Media</option>
-            <option value="High">Alta</option>
-            <option value="Urgent">Urgente</option>
+            <option value="LOW">Baja</option>
+            <option value="MEDIUM">Media</option>
+            <option value="HIGH">Alta</option>
+            <option value="URGENT">Urgente</option>
           </select>
         </div>
 
@@ -208,10 +208,10 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
         </label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { value: 'Entry', label: 'Junior (0-2 años)' },
-            { value: 'Mid', label: 'Semi-Senior (2-5 años)' },
-            { value: 'Senior', label: 'Senior (5+ años)' },
-            { value: 'Lead', label: 'Lead/Manager' }
+            { value: 'ENTRY', label: 'Junior (0-2 años)' },
+            { value: 'MID', label: 'Semi-Senior (2-5 años)' },
+            { value: 'SENIOR', label: 'Senior (5+ años)' },
+            { value: 'LEAD', label: 'Lead/Manager' }
           ].map((level) => (
             <label key={level.value} className="flex items-center">
               <input
@@ -237,13 +237,13 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
           <select
             name="urgency"
             id="urgency"
-            defaultValue={initialData?.requirement.timeframe || 'Normal'}
+            defaultValue={initialData?.requirement.timeframe || 'NORMAL'}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           >
-            <option value="6+ months">Baja - Más de 6 meses</option>
-            <option value="3-6 months">Normal - 3-6 meses</option>
-            <option value="1-2 months">Alta - 1-2 semanas</option>
-            <option value="Immediate">Inmediata - Menos de 2 semanas</option>
+            <option value="LONG_TERM">Baja - Más de 6 meses</option>
+            <option value="FLEXIBLE">Normal - 3-6 meses</option>
+            <option value="NORMAL">Alta - 1-2 semanas</option>
+            <option value="IMMEDIATE">Inmediata - Menos de 2 semanas</option>
           </select>
         </div>
         

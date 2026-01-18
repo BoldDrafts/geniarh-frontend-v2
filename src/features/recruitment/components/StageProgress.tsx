@@ -1,60 +1,56 @@
 import React from 'react';
 import { CheckCircle, Clock, AlertCircle, XCircle, Calendar } from 'lucide-react';
+import { RecruitmentStage } from '../types/recruitmentProcess';
+import { OveralStatusEnum } from './RecruitmentStagesWithDates';
 
-export interface Stage {
-  name: string;
-  status: 'complete' | 'current' | 'upcoming' | 'cancelled';
-  description?: string;
-  dueDate?: string;
-}
 
 interface StageProgressProps {
-  stages: Stage[];
+  stages: RecruitmentStage[];
 }
 
 const StageProgress: React.FC<StageProgressProps> = ({ stages }) => {
-  const getStageIcon = (status: Stage['status']) => {
+  const getStageIcon = (status: RecruitmentStage['status']) => {
     switch (status) {
-      case 'complete':
+      case 'COMPLETE':
         return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'current':
+      case 'CURRENT':
         return <Clock className="h-5 w-5 text-blue-600" />;
-      case 'cancelled':
+      case 'CANCELLED':
         return <XCircle className="h-5 w-5 text-red-600" />;
-      case 'upcoming':
+      case 'UPCOMING':
       default:
         return <AlertCircle className="h-5 w-5 text-gray-400" />;
     }
   };
 
-  const getStageClasses = (status: Stage['status']) => {
+  const getStageClasses = (status: RecruitmentStage['status']) => {
     switch (status) {
-      case 'complete':
+      case 'COMPLETE':
         return 'bg-green-50 border-green-200 text-green-800';
-      case 'current':
+      case 'CURRENT':
         return 'bg-blue-50 border-blue-200 text-blue-800';
-      case 'cancelled':
+      case 'CANCELLED':
         return 'bg-red-50 border-red-200 text-red-800';
-      case 'upcoming':
+      case 'UPCOMING':
       default:
         return 'bg-gray-50 border-gray-200 text-gray-600';
     }
   };
 
-  const getConnectorClasses = (currentStatus: Stage['status']) => {
-    if (currentStatus === 'complete') {
+  const getConnectorClasses = (currentStatus: RecruitmentStage['status']) => {
+    if (currentStatus === 'COMPLETE') {
       return 'bg-green-600';
     }
-    if (currentStatus === 'current') {
+    if (currentStatus === 'CURRENT') {
       return 'bg-gradient-to-r from-green-600 to-blue-600';
     }
-    if (currentStatus === 'cancelled') {
+    if (currentStatus === 'CANCELLED') {
       return 'bg-red-600';
     }
     return 'bg-gray-300';
   };
 
-  const getDueDateStatus = (dueDate?: string) => {
+  const getDueDateStatus = (dueDate?: string) : OveralStatusEnum => {
     if (!dueDate) return 'none';
     
     const today = new Date();
@@ -66,18 +62,18 @@ const StageProgress: React.FC<StageProgressProps> = ({ stages }) => {
     const diffTime = due.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'overdue';
-    if (diffDays <= 3) return 'urgent';
-    if (diffDays <= 7) return 'warning';
-    return 'normal';
+    if (diffDays < 0) return 'OVERDUE';
+    if (diffDays <= 3) return 'URGENT';
+    if (diffDays <= 7) return 'WARNING';
+    return 'NORMAL';
   };
 
   const getDueDateColor = (dueDate?: string) => {
     const status = getDueDateStatus(dueDate);
     switch (status) {
-      case 'overdue': return 'text-red-600';
-      case 'urgent': return 'text-orange-600';
-      case 'warning': return 'text-yellow-600';
+      case 'OVERDUE': return 'text-red-600';
+      case 'URGENT': return 'text-orange-600';
+      case 'WARNING': return 'text-yellow-600';
       default: return 'text-gray-500';
     }
   };
@@ -100,9 +96,9 @@ const StageProgress: React.FC<StageProgressProps> = ({ stages }) => {
               </div>
               <div className="mt-2 text-center">
                 <div className={`text-sm font-medium ${
-                  stage.status === 'complete' ? 'text-green-800' :
-                  stage.status === 'current' ? 'text-blue-800' :
-                  stage.status === 'cancelled' ? 'text-red-800' :
+                  stage.status === 'COMPLETE' ? 'text-green-800' :
+                  stage.status === 'CURRENT' ? 'text-blue-800' :
+                  stage.status === 'CANCELLED' ? 'text-red-800' :
                   'text-gray-600'
                 }`}>
                   {stage.name}

@@ -1,19 +1,19 @@
 import { toast } from 'react-hot-toast';
+import { authService } from '../../../shared/api/authService';
 import { httpClient } from '../../../shared/api/httpClient';
 import {
   CreateStageDueDateRequest,
+  DaysOverdueCalculation,
+  OverdueStageDueDateParams,
   StageDueDate,
+  StageDueDateError,
   StageDueDateFilterParams,
   StageDueDateListResponse,
-  UpdateStageDueDateRequest,
-  OverdueStageDueDateParams,
-  UpcomingStageDueDateAlertsParams,
-  StageDueDateError,
-  DaysOverdueCalculation,
   StageDueDateStats,
-  StageDueDateSummary
+  StageDueDateSummary,
+  UpcomingStageDueDateAlertsParams,
+  UpdateStageDueDateRequest
 } from '../types/stageDueDate';
-import { authService } from '../../../shared/api/authService';
 
 /**
  * Servicio de Stage Due Dates
@@ -66,12 +66,13 @@ class StageDueDateService {
    */
   private getStageDisplayName(stage: StageDueDate['stage']): string {
     const stageNames = {
-      applied: 'Applied',
-      screening: 'Screening',
-      technical: 'Technical Interview',
-      cultural: 'Cultural Interview',
-      offer: 'Offer',
-      hired: 'Hired'
+      CREATED: 'Created',
+      PUBLISHED: 'Published',
+      SOURCING: 'Sourcing',
+      SCREENING: 'Screening',
+      INTERVIEWS: 'Interviews',
+      SHORTLIST: 'Shorlist',
+      HIRING: 'Hiring'
     };
 
     return stageNames[stage] || stage;
@@ -406,16 +407,16 @@ class StageDueDateService {
     const response = await this.getStageDueDates(recruitmentId, { limit: 1000 });
     const dueDates = response.data;
 
-    return dueDates.map(dd => {
+    return dueDates.map((dd) : StageDueDateSummary => {
       const calculation = this.calculateDaysOverdue(dd.dueDate);
       
-      let status: StageDueDateSummary['status'] = 'on-time';
+      let status: StageDueDateSummary['status'] = 'ON_TIME';
       if (dd.isCompleted) {
-        status = 'completed';
+        status = 'COMPLETED';
       } else if (calculation.isOverdue) {
-        status = 'overdue';
+        status = 'OVERDUE';
       } else if (calculation.isAlertDue) {
-        status = 'alert-due';
+        status = 'ALERT_DUE';
       }
 
       return {

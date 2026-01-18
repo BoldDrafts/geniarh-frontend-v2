@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Recruiter, RecruitmentProcess, Requirement, RecruitmentStage } from '../types/recruitment';
 import { toast } from 'react-hot-toast';
 import recruitmentService from '../api/recruitmentService';
+import { showWarning } from '../../../shared/utils/toastUtils';
 
 export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
   const [useAI, setUseAI] = useState(false);
@@ -36,15 +37,15 @@ export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
     setRecruitersError(null);
 
     try {
-      const response = await recruitmentService.getAvailableRecruiters({
+      const response = (await recruitmentService.getAvailableRecruiters({
         page: 1,
         limit: 100 // Load all available recruiters
-      });
+      }))!;
 
       setRecruiters(response.data);
 
       if (response.data.length === 0) {
-        toast.custom('No hay reclutadores disponibles en este momento');
+        showWarning('No hay reclutadores disponibles en este momento');
       }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Error al cargar reclutadores';

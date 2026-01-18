@@ -18,10 +18,14 @@ export interface Requirement {
   title: string;
   department: string;
   priority: Priority;
+  priorityLabel: string;
   timeframe: string;
+  timeframeLabel: string;
   experienceLevel: ExperienceLevel;
+  experienceLevelLabel: string;
   workType: string;
   employmentType: EmploymentType;
+  employmentTypeLabel: string;
   salaryMin: number;
   salaryMax: number;
   salaryCurrency: Currency;

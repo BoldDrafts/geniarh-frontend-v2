@@ -13,16 +13,16 @@ import {
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { aiService } from '../../../shared/api/aiService';
 import { LoadingButton } from '../../../shared/components/LoadingButton';
 import { createLoadingKey, RECRUITMENT_LOADING_KEYS } from '../../../shared/utils/loadingKeys';
-import { RecruitmentProcess } from '../types/recruitment';
+import { RecruitmentProcess, RecruitmentStatus } from '../types/recruitment';
 import { getCandidateQualityIndicator, getRecruitmentHealthScore } from '../utils/recruitmentUtils';
-import { aiService } from '../../../shared/api/aiService';
 
 interface RecruitmentSidebarProps {
   recruitment: RecruitmentProcess;
   onEdit: () => void;
-  onStatusChange: (processId: string, newStatus: any) => void;
+  onStatusChange: (processId: string, newStatus: RecruitmentStatus) => void;
   isLoading: (key: string) => boolean;
 }
 
@@ -142,9 +142,9 @@ const RecruitmentSidebar: React.FC<RecruitmentSidebarProps> = ({
           </LoadingButton>
           
           {/* Status Change Actions */}
-          {recruitment.status === 'Active' ? (
+          {recruitment.status === 'ACTIVE' ? (
             <LoadingButton
-              onClick={() => onStatusChange(recruitment.id, 'Paused')}
+              onClick={() => onStatusChange(recruitment.id, 'PAUSED')}
               loading={isLoading(createLoadingKey(RECRUITMENT_LOADING_KEYS.UPDATE_STATUS, recruitment.id))}
               loadingText="Pausing..."
               variant="secondary"
@@ -153,9 +153,9 @@ const RecruitmentSidebar: React.FC<RecruitmentSidebarProps> = ({
               <Clock className="mr-2 h-4 w-4" />
               Pause Recruitment
             </LoadingButton>
-          ) : recruitment.status === 'Paused' ? (
+          ) : recruitment.status === 'PAUSED' ? (
             <LoadingButton
-              onClick={() => onStatusChange(recruitment.id, 'Active')}
+              onClick={() => onStatusChange(recruitment.id, 'ACTIVE')}
               loading={isLoading(createLoadingKey(RECRUITMENT_LOADING_KEYS.UPDATE_STATUS, recruitment.id))}
               loadingText="Resuming..."
               variant="secondary"
@@ -166,9 +166,9 @@ const RecruitmentSidebar: React.FC<RecruitmentSidebarProps> = ({
             </LoadingButton>
           ) : null}
           
-          {recruitment.status !== 'Completed' && recruitment.status !== 'Cancelled' && (
+          {recruitment.status !== 'COMPLETED' && recruitment.status !== 'CANCELLED' && (
             <LoadingButton
-              onClick={() => onStatusChange(recruitment.id, 'Completed')}
+              onClick={() => onStatusChange(recruitment.id, 'COMPLETED')}
               loading={isLoading(createLoadingKey(RECRUITMENT_LOADING_KEYS.UPDATE_STATUS, recruitment.id))}
               loadingText="Completing..."
               variant="secondary"
@@ -179,9 +179,9 @@ const RecruitmentSidebar: React.FC<RecruitmentSidebarProps> = ({
             </LoadingButton>
           )}
           
-          {recruitment.status !== 'Cancelled' && (
+          {recruitment.status !== 'CANCELLED' && (
             <LoadingButton
-              onClick={() => onStatusChange(recruitment.id, 'Cancelled')}
+              onClick={() => onStatusChange(recruitment.id, 'CANCELLED')}
               loading={isLoading(createLoadingKey(RECRUITMENT_LOADING_KEYS.UPDATE_STATUS, recruitment.id))}
               loadingText="Cancelling..."
               variant="danger"

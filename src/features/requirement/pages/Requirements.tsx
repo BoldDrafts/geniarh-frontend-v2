@@ -653,11 +653,11 @@ const Requirements: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-1">Employment Type</h3>
-                <p className="text-sm text-gray-900">{detailRequirement.employmentType}</p>
+                <p className="text-sm text-gray-900">{detailRequirement.employmentTypeLabel}</p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-1">Experience Level</h3>
-                <p className="text-sm text-gray-900">{detailRequirement.experienceLevel}</p>
+                <p className="text-sm text-gray-900">{detailRequirement.experienceLevelLabel}</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -668,12 +668,12 @@ const Requirements: React.FC = () => {
                   detailRequirement.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
                   'bg-green-100 text-green-800'
                 }`}>
-                  {detailRequirement.priority}
+                  {detailRequirement.priorityLabel}
                 </span>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-1">Timeframe</h3>
-                <p className="text-sm text-gray-900">{detailRequirement.timeframe}</p>
+                <p className="text-sm text-gray-900">{detailRequirement.timeframeLabel}</p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-1">Salary Range</h3>

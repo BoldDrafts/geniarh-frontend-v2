@@ -18,7 +18,8 @@ export type StageStatusEnum =
   | 'UPCOMING'
   | 'CURRENT'
   | 'COMPLETE'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'NONE';
 
 export type RecruitmentStatus = 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
 

@@ -3,6 +3,8 @@ import { Calendar, AlertTriangle, CheckCircle, Save } from 'lucide-react';
 import { stageDueDateService } from '../api/stageDueDateService';
 import { StageDueDate } from '../types/stageDueDate';
 import { RecruitmentStage } from '../types/recruitmentProcess';
+import { StageStatusEnum } from '../types/base';
+import { OveralStatusEnum } from './RecruitmentStagesWithDates';
 
 interface StageDateSelectorProps {
   stage: RecruitmentStage;
@@ -58,7 +60,7 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
           existingStageDueDate.id,
           {
             dueDate: stage.dueDate,
-            isCompleted: stage.status === 'complete'
+            isCompleted: stage.status === 'COMPLETE'
           }
         );
       } else {
@@ -88,7 +90,7 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
     onDueDateChange(stageName, dueDate);
     setHasChanges(existingStageDueDate ? existingStageDueDate.dueDate !== dueDate : !!dueDate);
   };
-  const getDueDateStatus = () => {
+  const getDueDateStatus = () : OveralStatusEnum => {
     if (!stage.dueDate) return 'none';
     
     const today = new Date();
@@ -100,24 +102,24 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
     const diffTime = dueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (stage.status === 'complete') return 'completed';
-    if (diffDays < 0) return 'overdue';
-    if (diffDays <= 3) return 'urgent';
-    if (diffDays <= 7) return 'warning';
-    return 'normal';
+    if (stage.status === 'COMPLETE') return 'COMPLETED';
+    if (diffDays < 0) return 'OVERDUE';
+    if (diffDays <= 3) return 'URGENT';
+    if (diffDays <= 7) return 'WARNING';
+    return 'NORMAL';
   };
 
   const getStatusIcon = () => {
     const status = getDueDateStatus();
     
     switch (status) {
-      case 'completed':
+      case 'COMPLETED':
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'overdue':
+      case 'OVERDUE':
         return <AlertTriangle className="h-4 w-4 text-red-600" />;
-      case 'urgent':
+      case 'URGENT':
         return <AlertTriangle className="h-4 w-4 text-orange-600" />;
-      case 'warning':
+      case 'WARNING':
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       default:
         return <Calendar className="h-4 w-4 text-gray-400" />;
@@ -128,13 +130,13 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
     const status = getDueDateStatus();
     
     switch (status) {
-      case 'completed':
+      case 'COMPLETED':
         return 'border-green-200 bg-green-50';
-      case 'overdue':
+      case 'OVERDUE':
         return 'border-red-200 bg-red-50';
-      case 'urgent':
+      case 'URGENT':
         return 'border-orange-200 bg-orange-50';
-      case 'warning':
+      case 'WARNING':
         return 'border-yellow-200 bg-yellow-50';
       default:
         return 'border-gray-200 bg-white';
@@ -155,13 +157,13 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     switch (status) {
-      case 'completed':
+      case 'COMPLETED':
         return 'Completado';
-      case 'overdue':
+      case 'OVERDUE':
         return `${Math.abs(diffDays)} día(s) vencido`;
-      case 'urgent':
+      case 'URGENT':
         return `Vence en ${diffDays} día(s)`;
-      case 'warning':
+      case 'WARNING':
         return `Vence en ${diffDays} día(s)`;
       default:
         return `Vence en ${diffDays} día(s)`;
@@ -185,7 +187,7 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
           {getStatusIcon()}
           <span className="font-medium text-sm text-gray-900">{stage.name}</span>
         </div>
-        {stage.status === 'complete' && (
+        {stage.status === 'COMPLETE' && (
           <span className="text-xs text-green-600 font-medium">Completado</span>
         )}
       </div>
@@ -206,14 +208,14 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
           type="date"
           value={stage.dueDate || ''}
           onChange={(e) => handleDateChange(stage.name, e.target.value)}
-          disabled={disabled || stage.status === 'complete'}
+          disabled={disabled || stage.status === 'COMPLETE'}
           onKeyDown={(e) => e.preventDefault()}
           onPaste={(e) => e.preventDefault()}
           onDrop={(e) => e.preventDefault()}
           className={`
             w-full px-2 py-1 text-xs border rounded-md focus:outline-none focus:ring-1 
             focus:ring-blue-500 focus:border-blue-500 transition-colors
-            ${disabled || stage.status === 'complete' 
+            ${disabled || stage.status === 'COMPLETE' 
               ? 'bg-gray-100 border-gray-300 cursor-not-allowed' 
               : 'bg-white border-gray-300'
             }
@@ -244,10 +246,10 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
             {getStatusIcon()}
             <span className={`
               text-xs font-medium
-              ${getDueDateStatus() === 'overdue' ? 'text-red-600' : 
-                getDueDateStatus() === 'urgent' ? 'text-orange-600' : 
-                getDueDateStatus() === 'warning' ? 'text-yellow-600' : 
-                getDueDateStatus() === 'completed' ? 'text-green-600' : 
+              ${getDueDateStatus() === 'OVERDUE' ? 'text-red-600' : 
+                getDueDateStatus() === 'URGENT' ? 'text-orange-600' : 
+                getDueDateStatus() === 'WARNING' ? 'text-yellow-600' : 
+                getDueDateStatus() === 'COMPLETED' ? 'text-green-600' : 
                 'text-gray-600'
               }
             `}>
