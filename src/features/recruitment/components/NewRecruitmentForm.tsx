@@ -11,7 +11,7 @@ import FormActions from './FormActions';
 import FormHeader from './FormHeader';
 import RecruitmentStagesWithDates from './RecruitmentStagesWithDates';
 import BasicInfoSection from './sections/BasicInfoSection';
-import { getRecruitmentStages } from '../utils/recruitmentUtils';
+
 
 const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
   onClose,
@@ -21,7 +21,6 @@ const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
 }) => {
   const {
     useAI,
-    setUseAI,
     // Technical Skills
     skills,
     newSkill,
@@ -45,7 +44,6 @@ const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
     retryLoadRecruiters,
     // Common
     isSubmitting,
-    jobDescription,
     setJobDescription,
     handleSubmit
   } = useRecruitmentForm(initialData);
@@ -106,10 +104,10 @@ const NewRecruitmentForm: React.FC<NewRecruitmentFormProps> = ({
 
           {/* Recruitment Stages with Due Dates */}
           {initialData && <RecruitmentStagesWithDates
-            stages={getRecruitmentStages(initialData!)}
+            stages={recruitmentStages}
             onStageDateChange={handleStageDueDateChange}
             disabled={isSubmitting}
-            recruitmentId={initialData?.requirement.id!}
+            recruitmentId={initialData?.id!}
           />}
 
           {/* AI Toggle Section */}

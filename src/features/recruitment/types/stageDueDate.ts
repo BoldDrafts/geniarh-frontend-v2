@@ -24,6 +24,7 @@ export interface StageDueDate {
  */
 export interface CreateStageDueDateRequest {
   stage: RecruitmentStageEnum;
+  status: StageStatusEnum;
   dueDate: string; // YYYY-MM-DD format
   alertDays?: number;
   notes?: string;

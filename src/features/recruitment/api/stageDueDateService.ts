@@ -14,6 +14,17 @@ import {
   UpcomingStageDueDateAlertsParams,
   UpdateStageDueDateRequest
 } from '../types/stageDueDate';
+import { RecruitmentStageEnum } from '../types/base';
+
+export const STAGE_NAMES_MAP : Record<string, RecruitmentStageEnum> = {
+  CREATED: 'Created' as RecruitmentStageEnum,
+  PUBLISHED: 'Published' as RecruitmentStageEnum,
+  SOURCING: 'Sourcing' as RecruitmentStageEnum,
+  SCREENING: 'Screening' as RecruitmentStageEnum,
+  INTERVIEWS: 'Interviews' as RecruitmentStageEnum,
+  SHORTLIST: 'Shorlist' as RecruitmentStageEnum,
+  HIRING: 'Hiring' as RecruitmentStageEnum
+};
 
 /**
  * Servicio de Stage Due Dates
@@ -65,17 +76,7 @@ class StageDueDateService {
    * Obtener nombre para mostrar de la etapa
    */
   private getStageDisplayName(stage: StageDueDate['stage']): string {
-    const stageNames = {
-      CREATED: 'Created',
-      PUBLISHED: 'Published',
-      SOURCING: 'Sourcing',
-      SCREENING: 'Screening',
-      INTERVIEWS: 'Interviews',
-      SHORTLIST: 'Shorlist',
-      HIRING: 'Hiring'
-    };
-
-    return stageNames[stage] || stage;
+    return STAGE_NAMES_MAP[stage] || stage;
   }
 
   // ==================== MÉTODOS PRINCIPALES ====================
@@ -263,6 +264,7 @@ class StageDueDateService {
   async createForStage(
     recruitmentId: string,
     stage: StageDueDate['stage'],
+    status: StageDueDate['status'],
     dueDate: string,
     options?: {
       alertDays?: number;
@@ -271,6 +273,7 @@ class StageDueDateService {
   ): Promise<StageDueDate> {
     return this.createStageDueDate(recruitmentId, {
       stage,
+      status,
       dueDate,
       ...options
     });
@@ -384,10 +387,10 @@ class StageDueDateService {
     const dueDates = response.data;
 
     const completed = dueDates.filter(dd => dd.isCompleted).length;
-    const overdue = dueDates.filter(dd => 
+    const overdue = dueDates.filter(dd =>
       !dd.isCompleted && this.calculateDaysOverdue(dd.dueDate).isOverdue
     ).length;
-    const upcomingAlerts = dueDates.filter(dd => 
+    const upcomingAlerts = dueDates.filter(dd =>
       !dd.isCompleted && this.calculateDaysOverdue(dd.dueDate).isAlertDue
     ).length;
 
@@ -407,9 +410,9 @@ class StageDueDateService {
     const response = await this.getStageDueDates(recruitmentId, { limit: 1000 });
     const dueDates = response.data;
 
-    return dueDates.map((dd) : StageDueDateSummary => {
+    return dueDates.map((dd): StageDueDateSummary => {
       const calculation = this.calculateDaysOverdue(dd.dueDate);
-      
+
       let status: StageDueDateSummary['status'] = 'ON_TIME';
       if (dd.isCompleted) {
         status = 'COMPLETED';

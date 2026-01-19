@@ -74,11 +74,13 @@ export const getRecruitmentStages = (process: RecruitmentProcess): RecruitmentSt
   const stages: RecruitmentStage[] = [
     {
       name: 'Created',
+      stage: 'CREATED',
       status: 'COMPLETE',
       description: 'Recruitment process created'
     },
     {
       name: 'Published',
+      stage: 'PUBLISHED',
       status: hasActivePublications ? 'COMPLETE' : 
               hasPublications ? 'CURRENT' : 'UPCOMING',
       description: hasActivePublications ? 'Job posted on platforms' : 
@@ -86,6 +88,7 @@ export const getRecruitmentStages = (process: RecruitmentProcess): RecruitmentSt
     },
     {
       name: 'Sourcing',
+      stage: 'SOURCING',
       status: hasCandidates ? 'COMPLETE' :
               hasActivePublications ? 'CURRENT' : 'UPCOMING',
       description: hasCandidates ? `${process.metrics.totalCandidates} candidates sourced` :
@@ -93,6 +96,7 @@ export const getRecruitmentStages = (process: RecruitmentProcess): RecruitmentSt
     },
     {
       name: 'Screening',
+      stage: 'SCREENING',
       status: hasInterviews ? 'COMPLETE' :
               hasCandidates ? 'CURRENT' : 'UPCOMING',
       description: hasInterviews ? `${process.metrics.interviewsScheduled} interviews scheduled` :
@@ -100,6 +104,7 @@ export const getRecruitmentStages = (process: RecruitmentProcess): RecruitmentSt
     },
     {
       name: 'Interviews',
+      stage: 'INTERVIEWS',
       status: hasOffers ? 'COMPLETE' :
               hasInterviews ? 'CURRENT' : 'UPCOMING',
       description: hasOffers ? `${process.metrics.offersExtended} offers extended` :
@@ -107,6 +112,7 @@ export const getRecruitmentStages = (process: RecruitmentProcess): RecruitmentSt
     },
     {
       name: 'Short List',
+      stage: 'SHORTLIST',
       status: hasOffers ? 'COMPLETE' :
               hasInterviews ? 'CURRENT' : 'UPCOMING',
       description: hasOffers ? `${process.metrics.offersExtended} offers extended` :
@@ -114,6 +120,7 @@ export const getRecruitmentStages = (process: RecruitmentProcess): RecruitmentSt
     },
     {
       name: 'Hiring',
+      stage: 'HIRING',
       status: isCompleted ? 'COMPLETE' :
               isCancelled ? 'CANCELLED' :
               hasOffers ? 'CURRENT' : 'UPCOMING',

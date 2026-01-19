@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { RecruitmentStage } from '../types/recruitmentProcess';
+import { StageDueDate } from '../types/stageDueDate';
+import { stageDueDateService } from '../api/stageDueDateService';
 import StageDateSelector from './StageDateSelector';
 
 interface RecruitmentStagesWithDatesProps {
@@ -25,6 +27,38 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
   title = 'Fechas de Vencimiento por Etapa',
   recruitmentId
 }) => {
+  const [stageDueDates, setStageDueDates] = useState<Record<string, StageDueDate>>({});
+  const loadedRecruitmentId = useRef<string | null>(null);
+
+  // Cargar todas las fechas de vencimiento de una sola vez
+  useEffect(() => {
+    // Evitar cargar el mismo recruitmentId múltiples veces
+    if (!recruitmentId || loadedRecruitmentId.current === recruitmentId) return;
+
+    const loadAllStageDueDates = async () => {
+      try {
+        loadedRecruitmentId.current = recruitmentId; // Marcar como cargado antes de la llamada
+        
+        const response = await stageDueDateService.getStageDueDates(recruitmentId, { limit: 100 });
+        const dueDatesMap: Record<string, StageDueDate> = {};
+        
+        response.data.forEach(dueDate => {
+          dueDatesMap[dueDate.stage] = dueDate;
+        });
+        
+        setStageDueDates(dueDatesMap);
+        
+        // Actualizar los stages con las fechas existentes
+        response.data.forEach(dueDate => {
+          onStageDateChange(dueDate.stage, dueDate.dueDate);
+        });
+      } catch {
+        console.log('No existing due dates found for recruitment:', recruitmentId);
+      }
+    };
+
+    loadAllStageDueDates();
+  }, [recruitmentId]); // Eliminar onStageDateChange de las dependencias
 
   const getOverallStatus = () : OverallStatusDto => {
     const today = new Date();
@@ -81,6 +115,13 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
             onDueDateChange={onStageDateChange}
             disabled={disabled}
             recruitmentId={recruitmentId}
+            existingStageDueDate={stageDueDates[stage.name] || null}
+            onUpdateStageDueDate={(updatedDueDate: StageDueDate) => {
+              setStageDueDates(prev => ({
+                ...prev,
+                [stage.name]: updatedDueDate
+              }));
+            }}
           />
         ))}
       </div>

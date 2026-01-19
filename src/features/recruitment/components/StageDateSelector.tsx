@@ -1,53 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, AlertTriangle, CheckCircle, Save } from 'lucide-react';
-import { stageDueDateService } from '../api/stageDueDateService';
+import { STAGE_NAMES_MAP, stageDueDateService } from '../api/stageDueDateService';
 import { StageDueDate } from '../types/stageDueDate';
 import { RecruitmentStage } from '../types/recruitmentProcess';
-import { StageStatusEnum } from '../types/base';
+
 import { OveralStatusEnum } from './RecruitmentStagesWithDates';
+import { RecruitmentStageEnum } from '../types/base';
 
 interface StageDateSelectorProps {
   stage: RecruitmentStage;
   recruitmentId: string;
   onDueDateChange: (stageName: string, dueDate: string) => void;
   disabled?: boolean;
+  existingStageDueDate?: StageDueDate | null;
+  onUpdateStageDueDate?: (updatedDueDate: StageDueDate) => void;
+}
+
+export const recruitmentStageLabeltoKey = (stage: string): RecruitmentStageEnum => {
+  for (const [key, value] of Object.entries(STAGE_NAMES_MAP)) {
+    if (value === stage) {
+      return key as RecruitmentStageEnum;
+    }
+  }
+  throw new Error("No se mapeo el stage.")
 }
 
 const StageDateSelector: React.FC<StageDateSelectorProps> = ({
   stage,
   recruitmentId,
   onDueDateChange,
-  disabled = false
+  disabled = false,
+  existingStageDueDate: propExistingStageDueDate = null,
+  onUpdateStageDueDate
 }) => {
   const [isSaving, setIsSaving] = useState(false);
-  const [existingStageDueDate, setExistingStageDueDate] = useState<StageDueDate | null>(null);
+  const [existingStageDueDate, setExistingStageDueDate] = useState<StageDueDate | null>(propExistingStageDueDate);
   const [hasChanges, setHasChanges] = useState(false);
+  const [inputValue, setInputValue] = useState<string>(stage.dueDate || '');
 
-  // Cargar fecha existente al montar el componente
+  // Sincronizar con el prop cuando cambia
   useEffect(() => {
-    const loadExistingDueDate = async () => {
-      try {
-        const stageDueDates = await stageDueDateService.getByStage(recruitmentId, stage.name as StageDueDate['stage']);
-        if (stageDueDates.length > 0) {
-          const dueDate = stageDueDates[0];
-          setExistingStageDueDate(dueDate);
-          // Actualizar el stage con la fecha existente
-          onDueDateChange(stage.name, dueDate.dueDate);
-        }
-      } catch (error) {
-        // Silencioso si no hay fecha existente
-        console.log('No existing due date found for stage:', stage.name);
-      }
-    };
+    setExistingStageDueDate(propExistingStageDueDate);
+  }, [propExistingStageDueDate]);
 
-    if (recruitmentId) {
-      loadExistingDueDate();
+  // Sincronizar el input con el stage.dueDate cuando cambia
+  useEffect(() => {
+    setInputValue(stage.dueDate || '');
+  }, [stage.dueDate]);
+
+  // Inicializar la fecha del stage si existe una fecha de vencimiento
+  useEffect(() => {
+    if (existingStageDueDate && existingStageDueDate.dueDate) {
+      onDueDateChange(stage.name, existingStageDueDate.dueDate);
+      setInputValue(existingStageDueDate.dueDate);
     }
-  }, [recruitmentId, stage.name, onDueDateChange]);
+  }, [existingStageDueDate, stage.name, onDueDateChange]);
 
   // Guardar o actualizar la fecha
   const handleSaveDate = async () => {
-    if (!stage.dueDate) {
+    if (!inputValue) {
       return;
     }
 
@@ -55,29 +66,33 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
     try {
       if (existingStageDueDate) {
         // Actualizar fecha existente
-        await stageDueDateService.updateStageDueDate(
+        const updatedDueDate = await stageDueDateService.updateStageDueDate(
           recruitmentId,
           existingStageDueDate.id,
           {
-            dueDate: stage.dueDate,
+            dueDate: inputValue,
             isCompleted: stage.status === 'COMPLETE'
           }
         );
+        setExistingStageDueDate(updatedDueDate);
+        if (onUpdateStageDueDate) {
+          onUpdateStageDueDate(updatedDueDate);
+        }
       } else {
         // Crear nueva fecha
-        await stageDueDateService.createForStage(
+        const newDueDate = await stageDueDateService.createForStage(
           recruitmentId,
-          stage.status as StageDueDate['stage'],
-          stage.dueDate
+          recruitmentStageLabeltoKey(stage.name) as StageDueDate['stage'],
+          stage.status as StageDueDate['status'],
+          inputValue
         );
+        setExistingStageDueDate(newDueDate);
+        if (onUpdateStageDueDate) {
+          onUpdateStageDueDate(newDueDate);
+        }
       }
       
       setHasChanges(false);
-      // Recargar para obtener el ID actualizado
-      const stageDueDates = await stageDueDateService.getByStage(recruitmentId, stage.name as StageDueDate['stage']);
-      if (stageDueDates.length > 0) {
-        setExistingStageDueDate(stageDueDates[0]);
-      }
     } catch (error) {
       console.error('Error saving stage due date:', error);
     } finally {
@@ -87,16 +102,17 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
 
   // Detectar cambios
   const handleDateChange = (stageName: string, dueDate: string) => {
+    setInputValue(dueDate);
     onDueDateChange(stageName, dueDate);
     setHasChanges(existingStageDueDate ? existingStageDueDate.dueDate !== dueDate : !!dueDate);
   };
   const getDueDateStatus = () : OveralStatusEnum => {
-    if (!stage.dueDate) return 'none';
+    if (!inputValue) return 'NONE';
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const dueDate = new Date(stage.dueDate);
+    const dueDate = new Date(inputValue);
     dueDate.setHours(0, 0, 0, 0);
     
     const diffTime = dueDate.getTime() - today.getTime();
@@ -144,13 +160,13 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
   };
 
   const getStatusText = () => {
-    if (!stage.dueDate) return '';
+    if (!inputValue) return '';
     
     const status = getDueDateStatus();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const dueDate = new Date(stage.dueDate);
+    const dueDate = new Date(inputValue);
     dueDate.setHours(0, 0, 0, 0);
     
     const diffTime = dueDate.getTime() - today.getTime();
@@ -178,8 +194,6 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
     return `${day}/${month}/${year}`;
   };
 
-
-
   return (
     <div className={`border rounded-lg p-3 transition-colors ${getStatusColor()}`}>
       <div className="flex items-center justify-between mb-2">
@@ -197,21 +211,18 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
           <label className="text-xs text-gray-600 font-medium">
             Fecha de vencimiento:
           </label>
-          {stage.dueDate && (
+          {inputValue && (
             <span className="text-xs text-gray-500">
-              {formatDate(stage.dueDate)}
+              {formatDate(inputValue)}
             </span>
           )}
         </div>
         
         <input
           type="date"
-          value={stage.dueDate || ''}
+          value={inputValue || ''}
           onChange={(e) => handleDateChange(stage.name, e.target.value)}
           disabled={disabled || stage.status === 'COMPLETE'}
-          onKeyDown={(e) => e.preventDefault()}
-          onPaste={(e) => e.preventDefault()}
-          onDrop={(e) => e.preventDefault()}
           className={`
             w-full px-2 py-1 text-xs border rounded-md focus:outline-none focus:ring-1 
             focus:ring-blue-500 focus:border-blue-500 transition-colors
@@ -223,7 +234,7 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
           min={new Date().toISOString().split('T')[0]}
         />
 
-        {hasChanges && stage.dueDate && (
+        {hasChanges && inputValue && (
           <button
             onClick={handleSaveDate}
             disabled={isSaving}

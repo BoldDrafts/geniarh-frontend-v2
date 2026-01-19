@@ -1,9 +1,10 @@
 // hooks/useRecruitmentForm.ts
 import { useState, useEffect } from 'react';
-import { Recruiter, RecruitmentProcess, Requirement, RecruitmentStage } from '../types/recruitment';
+import { Recruiter, RecruitmentProcess, RecruitmentStage, RecruitmentStageEnum } from '../types/recruitment';
 import { toast } from 'react-hot-toast';
 import recruitmentService from '../api/recruitmentService';
 import { showWarning } from '../../../shared/utils/toastUtils';
+import { getRecruitmentStages } from '../utils/recruitmentUtils';
 
 export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
   const [useAI, setUseAI] = useState(false);
@@ -17,7 +18,9 @@ export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
   const [newSoftSkill, setNewSoftSkill] = useState('');
 
   // Recruitment Stages with due dates
-  const [recruitmentStages, setRecruitmentStages] = useState<RecruitmentStage[]>([]);
+  const [recruitmentStages, setRecruitmentStages] = useState<RecruitmentStage[]>(
+    initialData ? getRecruitmentStages(initialData) : []
+  );
 
   // Recruiters state
   const [recruiters, setRecruiters] = useState<Recruiter[]>([]);
@@ -87,10 +90,10 @@ export const useRecruitmentForm = (initialData?: RecruitmentProcess) => {
   };
 
   // Recruitment Stages handlers
-  const handleStageDueDateChange = (stageName: string, dueDate: string) => {
+  const handleStageDueDateChange = (stageName: RecruitmentStageEnum, dueDate: string) => {
     setRecruitmentStages(prevStages =>
       prevStages.map(stage =>
-        stage.name === stageName
+        stage.stage === stageName
           ? { ...stage, dueDate: dueDate || undefined }
           : stage
       )

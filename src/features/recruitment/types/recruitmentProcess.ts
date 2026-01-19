@@ -1,6 +1,6 @@
 // types/recruitmentProcess.ts - Tipos del proceso de reclutamiento
 
-import { RecruitmentStatus, SortField, SortOrder, Priority, EmploymentType, ExperienceLevel, Currency, Timeframe, StageStatusEnum } from './base';
+import { RecruitmentStatus, SortField, SortOrder, Priority, EmploymentType, ExperienceLevel, Currency, Timeframe, StageStatusEnum, RecruitmentStageEnum } from './base';
 import { Pagination } from './shared';
 import { Requirement } from './requirement';
 import { Candidate } from './candidate';
@@ -152,6 +152,7 @@ export interface RecruitmentAnalytics {
 
 export interface RecruitmentStage {
   name: string;
+  stage: RecruitmentStageEnum;
   status: StageStatusEnum;
   description: string;
   startDate?: string;
