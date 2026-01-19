@@ -22,7 +22,7 @@ export const STAGE_NAMES_MAP : Record<string, RecruitmentStageEnum> = {
   SOURCING: 'Sourcing' as RecruitmentStageEnum,
   SCREENING: 'Screening' as RecruitmentStageEnum,
   INTERVIEWS: 'Interviews' as RecruitmentStageEnum,
-  SHORTLIST: 'Shorlist' as RecruitmentStageEnum,
+  SHORT_LIST: 'Short List' as RecruitmentStageEnum,
   HIRING: 'Hiring' as RecruitmentStageEnum
 };
 

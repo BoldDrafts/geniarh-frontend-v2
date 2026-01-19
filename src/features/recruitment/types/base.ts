@@ -11,7 +11,7 @@ export type RecruitmentStageEnum =
   | "SOURCING"
   | "SCREENING"
   | "INTERVIEWS"
-  | "SHORTLIST"
+  | "SHORT_LIST"
   | "HIRING";
 
 export type StageStatusEnum = 

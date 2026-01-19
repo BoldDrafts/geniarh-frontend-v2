@@ -112,7 +112,7 @@ export const getRecruitmentStages = (process: RecruitmentProcess): RecruitmentSt
     },
     {
       name: 'Short List',
-      stage: 'SHORTLIST',
+      stage: 'SHORT_LIST',
       status: hasOffers ? 'COMPLETE' :
               hasInterviews ? 'CURRENT' : 'UPCOMING',
       description: hasOffers ? `${process.metrics.offersExtended} offers extended` :

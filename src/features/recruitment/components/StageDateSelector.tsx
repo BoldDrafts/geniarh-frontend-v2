@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, AlertTriangle, CheckCircle, Save } from 'lucide-react';
 import { STAGE_NAMES_MAP, stageDueDateService } from '../api/stageDueDateService';
 import { StageDueDate } from '../types/stageDueDate';
@@ -37,6 +37,7 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
   const [existingStageDueDate, setExistingStageDueDate] = useState<StageDueDate | null>(propExistingStageDueDate);
   const [hasChanges, setHasChanges] = useState(false);
   const [inputValue, setInputValue] = useState<string>(stage.dueDate || '');
+  const initializedRef = useRef(false);
 
   // Sincronizar con el prop cuando cambia
   useEffect(() => {
@@ -48,13 +49,14 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
     setInputValue(stage.dueDate || '');
   }, [stage.dueDate]);
 
-  // Inicializar la fecha del stage si existe una fecha de vencimiento
+  // Inicializar la fecha del stage si existe una fecha de vencimiento (solo una vez)
   useEffect(() => {
-    if (existingStageDueDate && existingStageDueDate.dueDate) {
+    if (!initializedRef.current && existingStageDueDate && existingStageDueDate.dueDate) {
       onDueDateChange(stage.name, existingStageDueDate.dueDate);
       setInputValue(existingStageDueDate.dueDate);
+      initializedRef.current = true;
     }
-  }, [existingStageDueDate, stage.name, onDueDateChange]);
+  }, [existingStageDueDate, stage.name]); // Eliminar onDueDateChange de las dependencias
 
   // Guardar o actualizar la fecha
   const handleSaveDate = async () => {
@@ -103,7 +105,10 @@ const StageDateSelector: React.FC<StageDateSelectorProps> = ({
   // Detectar cambios
   const handleDateChange = (stageName: string, dueDate: string) => {
     setInputValue(dueDate);
-    onDueDateChange(stageName, dueDate);
+    // Solo llamar a onDueDateChange si el valor realmente cambió
+    if (dueDate !== (existingStageDueDate?.dueDate || stage.dueDate || '')) {
+      onDueDateChange(stageName, dueDate);
+    }
     setHasChanges(existingStageDueDate ? existingStageDueDate.dueDate !== dueDate : !!dueDate);
   };
   const getDueDateStatus = () : OveralStatusEnum => {

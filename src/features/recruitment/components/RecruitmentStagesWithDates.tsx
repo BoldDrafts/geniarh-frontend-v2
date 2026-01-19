@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { RecruitmentStage } from '../types/recruitmentProcess';
 import { StageDueDate } from '../types/stageDueDate';
 import { stageDueDateService } from '../api/stageDueDateService';
@@ -28,6 +29,7 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
   recruitmentId
 }) => {
   const [stageDueDates, setStageDueDates] = useState<Record<string, StageDueDate>>({});
+  const [isExpanded, setIsExpanded] = useState(false);
   const loadedRecruitmentId = useRef<string | null>(null);
 
   // Cargar todas las fechas de vencimiento de una sola vez
@@ -97,37 +99,54 @@ const RecruitmentStagesWithDates: React.FC<RecruitmentStagesWithDatesProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Header con estado general */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-        <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium bg-${overallStatus.color}-50 text-${overallStatus.color}-800`}>
-          <div className={`w-2 h-2 rounded-full bg-${overallStatus.color}-400`} />
-          <span>{overallStatus.text}</span>
+      {/* Panel desplegable de configuración */}
+      <div className="border border-gray-200 rounded-lg">
+        {/* Header clickeable del panel */}
+        <div 
+          className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors rounded-t-lg"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <div className="flex items-center space-x-3">
+            <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+            {isExpanded ? (
+              <ChevronUp className="h-5 w-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-gray-500" />
+            )}
+          </div>
+          <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium bg-${overallStatus.color}-50 text-${overallStatus.color}-800`}>
+            <div className={`w-2 h-2 rounded-full bg-${overallStatus.color}-400`} />
+            <span>{overallStatus.text}</span>
+          </div>
         </div>
+
+        {/* Contenido del panel - solo cuando está expandido */}
+        {isExpanded && (
+          <div className="p-4 bg-white border-t border-gray-200 rounded-b-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stages.filter((stage) => stage.name != 'Created').map((stage) => (
+                <StageDateSelector
+                  key={stage.name}
+                  stage={stage}
+                  onDueDateChange={onStageDateChange}
+                  disabled={disabled}
+                  recruitmentId={recruitmentId}
+                  existingStageDueDate={stageDueDates[stage.name] || null}
+                  onUpdateStageDueDate={(updatedDueDate: StageDueDate) => {
+                    setStageDueDates(prev => ({
+                      ...prev,
+                      [stage.name]: updatedDueDate
+                    }));
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Grid de etapas con selectores de fecha */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stages.filter((stage) => stage.name != 'Created').map((stage) => (
-          <StageDateSelector
-            key={stage.name}
-            stage={stage}
-            onDueDateChange={onStageDateChange}
-            disabled={disabled}
-            recruitmentId={recruitmentId}
-            existingStageDueDate={stageDueDates[stage.name] || null}
-            onUpdateStageDueDate={(updatedDueDate: StageDueDate) => {
-              setStageDueDates(prev => ({
-                ...prev,
-                [stage.name]: updatedDueDate
-              }));
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Resumen de fechas */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+      {/* Resumen de fechas - siempre visible fuera del panel */}
+      <div className="p-4 bg-gray-50 rounded-lg">
         <h4 className="text-sm font-medium text-gray-900 mb-3">Resumen de Fechas</h4>
         <div className="space-y-2">
           {stages
