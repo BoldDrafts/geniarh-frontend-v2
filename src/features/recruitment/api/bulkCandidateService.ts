@@ -405,18 +405,18 @@ class BulkCandidateService extends BaseService<any, any, any> {
    */
   private generateCsvTemplate(options?: TemplateGenerationOptions): TemplateDownloadResponse {
     const headers = [
-      'firstName',
-      'lastName', 
-      'email',
-      'phone',
-      'linkedinUrl',
-      'location',
-      'currentPosition',
-      'currentCompany',
-      'experience',
-      'skills',
-      'education',
-      'summary'
+      'FirstName',
+      'LastName',
+      'LinkedinUrl', 
+      'Email',
+      'Phone',
+      'Location',
+      'CurrentPosition',
+      'CurrentCompany',
+      'Experience',
+      'Skills',
+      'Education',
+      'Summary'
     ];
 
     const sampleData: CandidateTemplateData[] = options?.includeExamples ? [
@@ -463,9 +463,38 @@ class BulkCandidateService extends BaseService<any, any, any> {
 
     // Add sample data
     if (sampleData.length > 0) {
-      sampleData.forEach(row => {
+      sampleData.forEach((row: CandidateTemplateData) => {
         const values = allHeaders.map(header => {
-          const value = (row as any)[header] || '';
+          const value = (((header: string) => {
+            switch(header) {
+              case 'FirstName':
+                return row.firstName;
+              case 'LastName':
+                return row.lastName;
+              case 'LinkedinUrl':
+                return row.linkedinUrl;
+              case 'Email':
+                return row.email;
+              case 'Phone':
+                return row.phone;
+              case 'Location':
+                return row.location;
+              case 'CurrentPosition':
+                return row.currentPosition;
+              case 'CurrentCompany':
+                return row.currentCompany;
+              case 'Experience':
+                return row.experience;
+              case 'Skills':
+                return row.skills;
+              case 'Education':
+                return row.education;
+              case 'Summary':
+                return row.summary;
+              default:
+                return '';
+            }
+          })(header))!;
           // Escape quotes and wrap in quotes if contains comma or quote
           if (value.includes(',') || value.includes('"') || value.includes('\n')) {
             return `"${value.replace(/"/g, '""')}"`;
@@ -480,11 +509,11 @@ class BulkCandidateService extends BaseService<any, any, any> {
     if (options?.includeInstructions) {
       const instructions = [
         '# Instructions:',
-        '# - firstName and lastName are required',
-        '# - email is required and must be valid',
-        '# - linkedinUrl should be a valid LinkedIn profile URL',
-        '# - phone should include country code',
-        '# - skills should be comma-separated within quotes',
+        '# - FirstName and lastName are required',
+        '# - Email is required and must be valid',
+        '# - LinkedinUrl should be a valid LinkedIn profile URL',
+        '# - Phone should include country code',
+        '# - Skills should be comma-separated within quotes',
         '# - Remove these instruction lines before uploading',
         ''
       ];
@@ -535,7 +564,7 @@ class BulkCandidateService extends BaseService<any, any, any> {
       const headerLine = lines[0];
       const headers = this.parseCsvLine(headerLine);
       
-      const requiredHeaders = ['firstName', 'lastName', 'email'];
+      const requiredHeaders = ['FirstName', 'LastName', 'Email'];
       const missingHeaders = requiredHeaders.filter(req => 
         !headers.some(h => h.toLowerCase().trim() === req.toLowerCase())
       );

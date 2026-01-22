@@ -204,7 +204,7 @@ class N8nRecruitmentService {
 
       toast.success('Published to LinkedIn successfully!');
 
-      return response;
+      responseHandler.handleResponse(exchange, response);
 
     } catch (error: any) {
       this.handleError(error, 'publish to LinkedIn');

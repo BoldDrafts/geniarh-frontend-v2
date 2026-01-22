@@ -90,7 +90,7 @@ const RecruitmentTableRow: React.FC<RecruitmentTableRowProps> = ({
             {process.requirement.department}
           </div>
           <div className="text-xs text-gray-500">
-            {process.requirement.priority} Priority · {process.requirement.workType}
+            {process.requirement.priorityLabel} Priority · {process.requirement.workType}
           </div>
         </div>
       </td>

@@ -5,7 +5,7 @@
 
 // ==================== Enums ====================
 
-export type BulkUploadStatusEnum = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'completed_with_errors';
+export type BulkUploadStatusEnum = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'COMPLETED_WITH_ERRORS';
 
 // ==================== Request Types ====================
 
@@ -152,9 +152,11 @@ export interface SupportedFileFormat {
 
 // ==================== Progress Tracking ====================
 
+export type UploadProgressEventEnum = 'UPLOADING' | 'PARSING' | 'VALIDATING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
 export interface UploadProgressEvent {
   uploadId: string;
-  stage: 'uploading' | 'parsing' | 'validating' | 'processing' | 'completed' | 'failed';
+  stage: UploadProgressEventEnum;
   progress: number;
   message?: string;
   currentRow?: number;
