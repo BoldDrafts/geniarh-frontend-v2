@@ -18,6 +18,7 @@ import Audit from './shared/pages/Audit';
 import Onboarding from './shared/pages/Onboarding';
 import InterviewDetailPage from './features/interviews/pages/InterviewDetailPage';
 import BulkCandidateUpload from './features/recruitment/pages/BulkCandidateUpload';
+import AIGenerate from './features/recruitment/pages/AIGenerate';
 
 // Componente de loading
 const KeycloakLoading = () => (
@@ -95,6 +96,17 @@ function AppContent() {
               <AuthRoute>
                 <ProtectedRoute roles={['recruiter-supervisor', 'recruiter']}>
                   <BulkCandidateUpload />
+                </ProtectedRoute>
+              </AuthRoute>
+            } 
+          />
+          
+          <Route 
+            path="/recruitment/:id/candidates/ai-generate" 
+            element={
+              <AuthRoute>
+                <ProtectedRoute roles={['recruiter-supervisor', 'recruiter']}>
+                  <AIGenerate />
                 </ProtectedRoute>
               </AuthRoute>
             } 

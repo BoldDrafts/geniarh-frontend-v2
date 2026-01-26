@@ -1,4 +1,4 @@
-import { ArrowLeft, RefreshCw, Upload, UserPlus } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Upload, UserPlus, Sparkles } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -464,6 +464,15 @@ const RecruitmentCandidates: React.FC = () => {
           >
             <Upload className="mr-2 h-4 w-4" />
             Bulk Upload
+          </button>
+
+          <button
+            onClick={() => navigate(`/recruitment/${id}/candidates/ai-generate`)}
+            disabled={loading.updating}
+            className="flex items-center px-4 py-2 bg-white border border-purple-600 text-purple-600 rounded-md hover:bg-purple-50 transition-colors disabled:opacity-50"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            AI Generate
           </button>
 
           <button
