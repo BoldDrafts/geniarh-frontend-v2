@@ -40,6 +40,10 @@
     {
       "name": "Stage Due Dates",
       "description": "Operations related to managing stage due dates and alerts in recruitment processes"
+    },
+    {
+      "name": "AI Generation",
+      "description": "Operations related to AI-powered candidate generation and data processing"
     }
   ],
   "paths": {
@@ -53,90 +57,25 @@
         ],
         "parameters": [
           {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "Active",
-                "Paused",
-                "Completed",
-                "Cancelled"
-              ]
-            },
-            "description": "Filter by recruitment process status"
+            "$ref": "#/components/parameters/StatusFilterParam"
           },
           {
-            "in": "query",
-            "name": "department",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter by department"
+            "$ref": "#/components/parameters/DepartmentFilterParam"
           },
           {
-            "in": "query",
-            "name": "priority",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "Low",
-                "Medium",
-                "High",
-                "Urgent"
-              ]
-            },
-            "description": "Filter by priority level"
+            "$ref": "#/components/parameters/PriorityFilterParam"
           },
           {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number for pagination"
+            "$ref": "#/components/parameters/PageParam"
           },
           {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            },
-            "description": "Number of items per page"
+            "$ref": "#/components/parameters/LimitParam"
           },
           {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "updatedAt",
-                "title",
-                "department",
-                "priority"
-              ],
-              "default": "createdAt"
-            },
-            "description": "Field to sort by"
+            "$ref": "#/components/parameters/RecruitmentSortByParam"
           },
           {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "description": "Sort order"
+            "$ref": "#/components/parameters/SortOrderParam"
           }
         ],
         "responses": {
@@ -209,33 +148,13 @@
         ],
         "parameters": [
           {
-            "in": "query",
-            "name": "department",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter recruiters by department"
+            "$ref": "#/components/parameters/DepartmentFilterParam"
           },
           {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number for pagination"
+            "$ref": "#/components/parameters/PageParam"
           },
           {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            },
-            "description": "Number of items per page"
+            "$ref": "#/components/parameters/LimitParam"
           }
         ],
         "responses": {
@@ -365,14 +284,7 @@
     "/recruitments/{id}/candidates/bulk-upload": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "get": {
@@ -384,61 +296,19 @@
         ],
         "parameters": [
           {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "$ref": "#/components/schemas/BulkUploadStatusEnum"
-            },
-            "description": "Filter by upload status"
+            "$ref": "#/components/parameters/StatusFilterParam"
           },
           {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number for pagination"
+            "$ref": "#/components/parameters/PageParam"
           },
           {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            },
-            "description": "Number of items per page"
+            "$ref": "#/components/parameters/LimitParam"
           },
           {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt",
-                "updatedAt",
-                "fileName",
-                "status"
-              ],
-              "default": "createdAt"
-            },
-            "description": "Field to sort by"
+            "$ref": "#/components/parameters/BulkUploadSortByParam"
           },
           {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "description": "Sort order"
+            "$ref": "#/components/parameters/SortOrderParam"
           }
         ],
         "responses": {
@@ -546,28 +416,14 @@
     "/recruitments/{id}/candidates/bulk-upload/{uploadId}/status": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         },
         {
-          "name": "uploadId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the bulk upload process"
+          "$ref": "#/components/parameters/BulkUploadIdParam"
         }
       ],
       "get": {
-          "operationId": "getBulkUploadStatus",
+        "operationId": "getBulkUploadStatus",
         "summary": "Get bulk upload process status",
         "description": "Check the status of an ongoing or completed bulk upload process",
         "tags": [
@@ -599,24 +455,10 @@
     "/recruitments/{id}/candidates/bulk-upload/{uploadId}/results": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         },
         {
-          "name": "uploadId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the bulk upload process"
+          "$ref": "#/components/parameters/BulkUploadIdParam"
         }
       ],
       "get": {
@@ -668,24 +510,10 @@
     "/recruitments/{id}/candidate/{candidateId}/email": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Recruitment process ID"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         },
         {
-          "name": "candidateId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Candidate ID"
+          "$ref": "#/components/parameters/CandidateIdParam"
         }
       ],
       "patch": {
@@ -864,22 +692,10 @@
     "/recruitments/{id}/candidate/{candidateId}/status": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          }
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         },
         {
-          "name": "candidateId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          }
+          "$ref": "#/components/parameters/CandidateIdParam"
         }
       ],
       "patch": {
@@ -928,24 +744,10 @@
     "/recruitments/{id}/candidate/{candidateId}": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Recruitment process ID"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         },
         {
-          "name": "candidateId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Candidate ID"
+          "$ref": "#/components/parameters/CandidateIdParam"
         }
       ],
       "get": {
@@ -1045,14 +847,7 @@
     "/recruitments/{id}/candidates": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "get": {
@@ -1064,79 +859,22 @@
         ],
         "parameters": [
           {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "new",
-                "contacted",
-                "interview",
-                "offer",
-                "hired",
-                "rejected"
-              ]
-            },
-            "description": "Filter candidates by status"
+            "$ref": "#/components/parameters/StatusFilterParam"
           },
           {
-            "in": "query",
-            "name": "stage",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "applied",
-                "screening",
-                "technical",
-                "cultural",
-                "offer",
-                "hired"
-              ]
-            },
-            "description": "Filter candidates by stage"
+            "$ref": "#/components/parameters/StageFilterParam"
           },
           {
-            "in": "query",
-            "name": "minMatchScore",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 0
-            },
-            "description": "Page number for pagination"
+            "$ref": "#/components/parameters/MinMatchScoreParam"
           },
           {
-            "in": "query",
-            "name": "maxMatchScore",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 100
-            },
-            "description": "Page number for pagination"
+            "$ref": "#/components/parameters/MaxMatchScoreParam"
           },
           {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number for pagination"
+            "$ref": "#/components/parameters/PageParam"
           },
           {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            },
-            "description": "Number of items per page"
+            "$ref": "#/components/parameters/LimitParam"
           }
         ],
         "responses": {
@@ -1204,17 +942,320 @@
         }
       }
     },
+    "/recruitments/{id}/candidates/ai-generate": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
+        }
+      ],
+      "post": {
+        "operationId": "generateCandidatesWithAI",
+        "summary": "Generate candidates using AI",
+        "description": "Generate candidate profiles using AI based on the recruitment process requirements",
+        "tags": [
+          "AI Generation",
+          "Candidates"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIGenerateCandidatesRequest"
+              },
+              "examples": {
+                "basic_generation": {
+                  "summary": "Basic AI candidate generation",
+                  "value": {
+                    "count": 5,
+                    "experienceLevel": "mid",
+                    "skills": ["React", "TypeScript", "Node.js"],
+                    "location": "Remote",
+                    "language": "en"
+                  }
+                },
+                "senior_generation": {
+                  "summary": "Senior level AI candidate generation",
+                  "value": {
+                    "count": 3,
+                    "experienceLevel": "senior",
+                    "skills": ["React", "TypeScript", "Node.js", "AWS", "Docker"],
+                    "location": "Hybrid",
+                    "language": "en",
+                    "includeCoverLetter": true,
+                    "customPrompt": "Generate candidates with experience in fintech projects"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "AI generation process started successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIGenerateCandidatesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "invalid_count": {
+                    "summary": "Invalid candidate count",
+                    "value": {
+                      "code": "VALIDATION_ERROR",
+                      "message": "Candidate count must be between 1 and 50",
+                      "timestamp": "2025-09-03T10:30:00Z",
+                      "requestId": "req-12345"
+                    }
+                  },
+                  "invalid_skills": {
+                    "summary": "Invalid skills format",
+                    "value": {
+                      "code": "VALIDATION_ERROR",
+                      "message": "Skills must be an array of strings",
+                      "timestamp": "2025-09-03T10:30:00Z",
+                      "requestId": "req-12346"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "description": "Too many requests - AI generation limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "code": "RATE_LIMIT_EXCEEDED",
+                  "message": "AI generation limit exceeded. Please try again later.",
+                  "timestamp": "2025-09-03T10:30:00Z",
+                  "requestId": "req-12347"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/recruitments/{id}/candidates/ai-generate/{generationId}/status": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
+        },
+        {
+          "$ref": "#/components/parameters/AIGenerationIdParam"
+        }
+      ],
+      "get": {
+        "operationId": "getAIGenerationStatus",
+        "summary": "Get AI generation process status",
+        "description": "Check the status of an ongoing or completed AI generation process",
+        "tags": [
+          "AI Generation",
+          "Candidates"
+        ],
+        "responses": {
+          "200": {
+            "description": "AI generation status information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIGenerationStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/recruitments/{id}/candidates/ai-generate/{generationId}/results": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
+        },
+        {
+          "$ref": "#/components/parameters/AIGenerationIdParam"
+        }
+      ],
+      "get": {
+        "operationId": "getAIGenerationResults",
+        "summary": "Get AI generation results",
+        "description": "Get detailed results of a completed AI generation process, including generated candidates and processing information",
+        "tags": [
+          "AI Generation",
+          "Candidates"
+        ],
+        "responses": {
+          "200": {
+            "description": "Detailed AI generation results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIGenerationResults"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Generation process not completed yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "code": "PROCESS_NOT_COMPLETED",
+                  "message": "AI generation process is still in progress. Check status first.",
+                  "timestamp": "2025-09-03T10:30:00Z",
+                  "requestId": "req-12348"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/recruitments/{id}/candidates/ai-generate/{generationId}/approve": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
+        },
+        {
+          "$ref": "#/components/parameters/AIGenerationIdParam"
+        }
+      ],
+      "post": {
+        "operationId": "approveAIGeneratedCandidates",
+        "summary": "Approve and add AI-generated candidates to recruitment",
+        "description": "Approve selected AI-generated candidates and add them to the recruitment process",
+        "tags": [
+          "AI Generation",
+          "Candidates"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIApproveCandidatesRequest"
+              },
+              "examples": {
+                "approve_all": {
+                  "summary": "Approve all generated candidates",
+                  "value": {
+                    "candidateIds": ["all"],
+                    "sendNotifications": true
+                  }
+                },
+                "approve_selected": {
+                  "summary": "Approve specific candidates",
+                  "value": {
+                    "candidateIds": ["uuid1", "uuid2", "uuid3"],
+                    "sendNotifications": false,
+                    "customMessage": "Welcome to our recruitment process!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Candidates approved and added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIApproveCandidatesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or generation process not completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "invalid_candidate_ids": {
+                    "summary": "Invalid candidate IDs",
+                    "value": {
+                      "code": "VALIDATION_ERROR",
+                      "message": "Invalid candidate IDs provided",
+                      "timestamp": "2025-09-03T10:30:00Z",
+                      "requestId": "req-12349"
+                    }
+                  },
+                  "generation_not_completed": {
+                    "summary": "Generation not completed",
+                    "value": {
+                      "code": "PROCESS_NOT_COMPLETED",
+                      "message": "Cannot approve candidates from an incomplete generation process",
+                      "timestamp": "2025-09-03T10:30:00Z",
+                      "requestId": "req-12350"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/recruitments/{id}/metrics": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "get": {
@@ -1251,14 +1292,7 @@
     "/recruitments/{id}/publications": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "get": {
@@ -1270,56 +1304,16 @@
         ],
         "parameters": [
           {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "draft",
-                "published",
-                "expired",
-                "suspended",
-                "archived"
-              ]
-            },
-            "description": "Filter publications by status"
+            "$ref": "#/components/parameters/StatusFilterParam"
           },
           {
-            "in": "query",
-            "name": "platform",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "LinkedIn",
-                "Computrabajo",
-                "Indeed",
-                "Glassdoor",
-                "CompanyWebsite",
-                "Other"
-              ]
-            },
-            "description": "Filter publications by platform"
+            "$ref": "#/components/parameters/PlatformFilterParam"
           },
           {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number for pagination"
+            "$ref": "#/components/parameters/PageParam"
           },
           {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            },
-            "description": "Number of items per page"
+            "$ref": "#/components/parameters/LimitParam"
           }
         ],
         "responses": {
@@ -1414,14 +1408,7 @@
     "/recruitments/{id}/timeline": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "get": {
@@ -1457,14 +1444,7 @@
     "/recruitments/{id}": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "get": {
@@ -1691,26 +1671,12 @@
       }
     },
     "/recruitments/{recruitmentProcessId}/publications/{publicationId}": {
-      "parameters": [
+"parameters": [
         {
-          "name": "recruitmentProcessId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         },
         {
-          "name": "publicationId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the publication"
+          "$ref": "#/components/parameters/PublicationIdParam"
         }
       ],
       "get": {
@@ -1847,16 +1813,9 @@
       }
     },
     "/recruitments/{recruitmentProcessId}/status": {
-      "parameters": [
+"parameters": [
         {
-          "name": "recruitmentProcessId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "patch": {
@@ -1905,14 +1864,7 @@
     "/recruitments/{id}/stage-due-dates": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "get": {
@@ -1925,12 +1877,7 @@
         ],
         "parameters": [
           {
-            "in": "query",
-            "name": "stage",
-            "schema": {
-              "$ref": "#/components/schemas/StageEnum"
-            },
-            "description": "Filter by specific stage"
+            "$ref": "#/components/parameters/StageFilterParam"
           },
           {
             "in": "query",
@@ -1949,32 +1896,10 @@
             "description": "Filter by completion status"
           },
           {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "stage",
-                "dueDate",
-                "createdAt",
-                "updatedAt"
-              ],
-              "default": "stage"
-            },
-            "description": "Field to sort by"
+            "$ref": "#/components/parameters/StageDueDatesSortByParam"
           },
           {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "asc"
-            },
-            "description": "Sort order"
+            "$ref": "#/components/parameters/SortOrderParam"
           }
         ],
         "responses": {
@@ -2091,26 +2016,12 @@
       }
     },
     "/recruitments/{id}/stage-due-dates/{stageDueDateId}": {
-      "parameters": [
+"parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         },
         {
-          "name": "stageDueDateId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the stage due date"
+          "$ref": "#/components/parameters/StageDueDateIdParam"
         }
       ],
       "get": {
@@ -2230,14 +2141,7 @@
     "/recruitments/{id}/stage-due-dates/overdue": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "get": {
@@ -2260,31 +2164,10 @@
             "description": "Filter by minimum days overdue (0 for all overdue)"
           },
           {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "dueDate",
-                "stage",
-                "daysOverdue"
-              ],
-              "default": "daysOverdue"
-            },
-            "description": "Field to sort by"
+            "$ref": "#/components/parameters/OverdueStageDueDatesSortByParam"
           },
           {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "desc"
-            },
-            "description": "Sort order"
+            "$ref": "#/components/parameters/SortOrderParam"
           }
         ],
         "responses": {
@@ -2313,14 +2196,7 @@
     "/recruitments/{id}/stage-due-dates/alerts": {
       "parameters": [
         {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "description": "Unique identifier of the recruitment process"
+          "$ref": "#/components/parameters/RecruitmentProcessIdParam"
         }
       ],
       "get": {
@@ -2344,31 +2220,10 @@
             "description": "Alert threshold in days (default: 7 days)"
           },
           {
-            "in": "query",
-            "name": "sortBy",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "dueDate",
-                "stage",
-                "daysUntilDue"
-              ],
-              "default": "daysUntilDue"
-            },
-            "description": "Field to sort by"
+            "$ref": "#/components/parameters/StageDueDateAlertsSortByParam"
           },
           {
-            "in": "query",
-            "name": "sortOrder",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "default": "asc"
-            },
-            "description": "Sort order"
+            "$ref": "#/components/parameters/SortOrderParam"
           }
         ],
         "responses": {
@@ -2405,7 +2260,7 @@
           "type": "string",
           "format": "uuid"
         },
-        "description": "Recruitment process ID"
+        "description": "Unique identifier of recruitment process"
       },
       "CandidateIdParam": {
         "name": "candidateId",
@@ -2416,6 +2271,229 @@
           "format": "uuid"
         },
         "description": "Candidate ID"
+      },
+      "BulkUploadIdParam": {
+        "name": "uploadId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "description": "Unique identifier of bulk upload process"
+      },
+      "AIGenerationIdParam": {
+        "name": "generationId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "description": "Unique identifier of AI generation process"
+      },
+      "PublicationIdParam": {
+        "name": "publicationId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "description": "Unique identifier of publication"
+      },
+      "StageDueDateIdParam": {
+        "name": "stageDueDateId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "description": "Unique identifier of stage due date"
+      },
+      "PageParam": {
+        "in": "query",
+        "name": "page",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "description": "Page number for pagination"
+      },
+      "LimitParam": {
+        "in": "query",
+        "name": "limit",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        },
+        "description": "Number of items per page"
+      },
+      "SortOrderParam": {
+        "in": "query",
+        "name": "sortOrder",
+        "schema": {
+          "type": "string",
+          "enum": ["asc", "desc"],
+          "default": "desc"
+        },
+        "description": "Sort order"
+      },
+      "DepartmentFilterParam": {
+        "in": "query",
+        "name": "department",
+        "schema": {
+          "type": "string"
+        },
+        "description": "Filter by department"
+      },
+      "StatusFilterParam": {
+        "in": "query",
+        "name": "status",
+        "schema": {
+          "type": "string"
+        },
+        "description": "Filter by status"
+      },
+      "PriorityFilterParam": {
+        "in": "query",
+        "name": "priority",
+        "schema": {
+          "$ref": "#/components/schemas/RequirementPriorityEnum"
+        },
+        "description": "Filter by priority level"
+      },
+      "RecruitmentSortByParam": {
+        "in": "query",
+        "name": "sortBy",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "createdAt",
+            "updatedAt",
+            "title",
+            "department",
+            "priority"
+          ],
+          "default": "createdAt"
+        },
+        "description": "Field to sort by"
+      },
+      "BulkUploadSortByParam": {
+        "in": "query",
+        "name": "sortBy",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "createdAt",
+            "updatedAt",
+            "fileName",
+            "status"
+          ],
+          "default": "createdAt"
+        },
+        "description": "Field to sort by"
+      },
+      "CandidateSortByParam": {
+        "in": "query",
+        "name": "sortBy",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "createdAt",
+            "updatedAt",
+            "name",
+            "email",
+            "matchScore"
+          ],
+          "default": "createdAt"
+        },
+        "description": "Field to sort by"
+      },
+      "MinMatchScoreParam": {
+        "in": "query",
+        "name": "minMatchScore",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 0
+        },
+        "description": "Minimum match score filter"
+      },
+      "MaxMatchScoreParam": {
+        "in": "query",
+        "name": "maxMatchScore",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 100
+        },
+        "description": "Maximum match score filter"
+      },
+      "StageFilterParam": {
+        "in": "query",
+        "name": "stage",
+        "schema": {
+          "$ref": "#/components/schemas/CandidateStageEnum"
+        },
+        "description": "Filter candidates by stage"
+      },
+      "PlatformFilterParam": {
+        "in": "query",
+        "name": "platform",
+        "schema": {
+          "$ref": "#/components/schemas/PublicationPlatformEnum"
+        },
+        "description": "Filter publications by platform"
+      },
+      "StageDueDatesSortByParam": {
+        "in": "query",
+        "name": "sortBy",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "stage",
+            "dueDate",
+            "createdAt",
+            "updatedAt"
+          ],
+          "default": "stage"
+        },
+        "description": "Field to sort by"
+      },
+      "OverdueStageDueDatesSortByParam": {
+        "in": "query",
+        "name": "sortBy",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "dueDate",
+            "stage",
+            "daysOverdue"
+          ],
+          "default": "daysOverdue"
+        },
+        "description": "Field to sort by"
+      },
+      "StageDueDateAlertsSortByParam": {
+        "in": "query",
+        "name": "sortBy",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "dueDate",
+            "stage",
+            "daysUntilDue"
+          ],
+          "default": "daysUntilDue"
+        },
+        "description": "Field to sort by"
       }
     },
     "responses": {
@@ -2489,6 +2567,419 @@
       }
     },
     "schemas": {
+      "AIGenerateCandidatesRequest": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Number of candidates to generate",
+            "example": 5
+          },
+          "experienceLevel": {
+            "$ref": "#/components/schemas/ExperienceLevelEnum"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Specific skills to include in generated candidates",
+            "example": ["React", "TypeScript", "Node.js"]
+          },
+          "location": {
+            "type": "string",
+            "description": "Preferred location for candidates",
+            "example": "Remote"
+          },
+          "includeCoverLetter": {
+            "type": "boolean",
+            "description": "Whether to generate cover letters for candidates",
+            "example": false
+          },
+          "customPrompt": {
+            "type": "string",
+            "description": "Custom AI prompt for candidate generation",
+            "example": "Generate candidates with experience in fintech projects"
+          }
+        },
+        "required": ["count", "experienceLevel", "skills"]
+      },
+      "AIGenerateCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "generationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the AI generation process",
+            "example": "789e0123-g34h-56i7-jkl8-901234567890"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AIGenerationStatusEnum"
+          },
+          "requestedCount": {
+            "type": "integer",
+            "description": "Number of candidates requested to generate",
+            "example": 5
+          },
+          "estimatedProcessingTime": {
+            "type": "integer",
+            "description": "Estimated processing time in seconds",
+            "example": 45
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the generation process was initiated",
+            "example": "2025-09-03T10:30:00Z"
+          }
+        },
+        "required": ["generationId", "status", "requestedCount", "createdAt"]
+      },
+      "AIGenerationStatus": {
+        "type": "object",
+        "properties": {
+          "generationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the AI generation process"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AIGenerationStatusEnum"
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "requestedCount": {
+                "type": "integer",
+                "description": "Number of candidates requested to generate",
+                "example": 5
+              },
+              "generatedCount": {
+                "type": "integer",
+                "description": "Number of candidates generated so far",
+                "example": 3
+              },
+              "validatedCount": {
+                "type": "integer",
+                "description": "Number of candidates validated so far",
+                "example": 2
+              },
+              "percentageComplete": {
+                "type": "number",
+                "format": "float",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Percentage of completion",
+                "example": 60.0
+              }
+            },
+            "required": ["requestedCount", "generatedCount", "validatedCount", "percentageComplete"]
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When generation started"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When generation completed (null if still in progress)"
+          },
+          "estimatedTimeRemaining": {
+            "type": "integer",
+            "description": "Estimated time remaining in seconds (null if completed or unknown)",
+            "example": 20
+          },
+          "currentOperation": {
+            "type": "string",
+            "description": "Description of current operation being performed",
+            "example": "Validating generated candidate profiles..."
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AIGenerationError"
+            },
+            "description": "List of errors encountered during generation"
+          }
+        },
+        "required": ["generationId", "status", "progress", "startedAt"]
+      },
+      "AIGenerationResults": {
+        "type": "object",
+        "properties": {
+          "generationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the AI generation process"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AIGenerationStatusEnum"
+          },
+          "requestedCount": {
+            "type": "integer",
+            "description": "Number of candidates requested to generate",
+            "example": 5
+          },
+          "generatedCount": {
+            "type": "integer",
+            "description": "Number of candidates successfully generated",
+            "example": 4
+          },
+          "validatedCount": {
+            "type": "integer",
+            "description": "Number of candidates that passed validation",
+            "example": 4
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AIGeneratedCandidate"
+            },
+            "description": "List of generated candidates ready for review"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AIGenerationError"
+            },
+            "description": "List of errors encountered during generation"
+          },
+          "processingTime": {
+            "type": "integer",
+            "description": "Total processing time in seconds",
+            "example": 38
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When generation completed",
+            "example": "2025-09-03T10:30:38Z"
+          }
+        },
+        "required": ["generationId", "status", "requestedCount", "generatedCount", "candidates", "completedAt"]
+      },
+      "AIGeneratedCandidate": {
+        "type": "object",
+        "properties": {
+          "candidateId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the generated candidate",
+            "example": "abc12345-def6-7890-gh12-345678901234"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Candidate's first name",
+            "example": "Sarah"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Candidate's last name",
+            "example": "Johnson"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Candidate's email address",
+            "example": "sarah.johnson@email.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Candidate's phone number",
+            "example": "+1-555-0123-4567"
+          },
+          "location": {
+            "type": "string",
+            "description": "Candidate's location",
+            "example": "San Francisco, CA"
+          },
+          "experienceLevel": {
+            "$ref": "#/components/schemas/ExperienceLevelEnum"
+          },
+          "yearsOfExperience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50,
+            "description": "Years of professional experience",
+            "example": 6
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Candidate's technical skills",
+            "example": ["React", "TypeScript", "Node.js", "AWS"]
+          },
+          "education": {
+            "$ref": "#/components/schemas/Education"
+          },
+          "experience": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Required or preferred certifications"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Professional summary generated by AI",
+            "example": "Mid-level frontend developer with 6 years of experience building scalable web applications using React and TypeScript. Passionate about creating intuitive user interfaces and optimizing application performance."
+          },
+          "coverLetter": {
+            "type": "string",
+            "description": "Generated cover letter (if requested)",
+            "example": "Dear Hiring Manager, I am excited to apply for this position..."
+          },
+          "matchScore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "AI-calculated match score for the recruitment position",
+            "example": 85
+          },
+          "aiConfidence": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "AI confidence level in the generated profile quality",
+            "example": 92
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the candidate was generated",
+            "example": "2025-09-03T10:30:15Z"
+          }
+        },
+        "required": ["candidateId", "firstName", "lastName", "email", "experienceLevel", "skills", "summary", "matchScore", "generatedAt"]
+      },
+      "AIApproveCandidatesRequest": {
+        "type": "object",
+        "properties": {
+          "candidateIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "List of candidate IDs to approve. Use ['all'] to approve all generated candidates",
+            "example": ["abc12345-def6-7890-gh12-345678901234", "def67890-gh12-3456-ij78-901234567890"]
+          },
+          "sendNotifications": {
+            "type": "boolean",
+            "description": "Whether to send notification emails to approved candidates",
+            "example": true
+          },
+          "customMessage": {
+            "type": "string",
+            "description": "Custom message to include in notification emails",
+            "example": "Welcome to our recruitment process!"
+          }
+        },
+        "required": ["candidateIds"]
+      },
+      "AIApproveCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "generationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the AI generation process"
+          },
+          "approvedCount": {
+            "type": "integer",
+            "description": "Number of candidates approved",
+            "example": 3
+          },
+          "skippedCount": {
+            "type": "integer",
+            "description": "Number of candidates skipped (not approved)",
+            "example": 1
+          },
+          "successCount": {
+            "type": "integer",
+            "description": "Number of candidates successfully added to recruitment process",
+            "example": 3
+          },
+          "failedCount": {
+            "type": "integer",
+            "description": "Number of candidates that failed to be added",
+            "example": 0
+          },
+          "approvedCandidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Candidate"
+            },
+            "description": "List of successfully approved and added candidates"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AIGenerationError"
+            },
+            "description": "List of errors encountered during approval process"
+          },
+          "processedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the approval process completed",
+            "example": "2025-09-03T10:32:00Z"
+          }
+        },
+        "required": ["generationId", "approvedCount", "successCount", "failedCount", "processedAt"]
+      },
+      "AIGenerationStatusEnum": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "GENERATING",
+          "VALIDATING",
+          "COMPLETED",
+          "FAILED",
+          "CANCELLED"
+        ],
+        "description": "Status of AI generation process"
+      },
+      "AIGenerationError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Error code",
+            "example": "VALIDATION_FAILED"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Generated candidate email is invalid"
+          },
+          "candidateIndex": {
+            "type": "integer",
+            "description": "Index of the candidate that caused the error (if applicable)",
+            "example": 2
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error details",
+            "example": {
+              "field": "email",
+              "reason": "Email format is invalid"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the error occurred",
+            "example": "2025-09-03T10:30:25Z"
+          }
+        },
+        "required": ["code", "message", "timestamp"]
+      },
       "BulkUploadResponse": {
         "type": "object",
         "properties": {
@@ -2720,12 +3211,12 @@
       "BulkUploadStatusEnum": {
         "type": "string",
         "enum": [
-          "pending",
-          "processing",
-          "completed",
-          "completed_with_errors",
-          "failed",
-          "cancelled"
+          "PENDING",
+          "PROCESSING",
+          "COMPLETED",
+          "COMPLETED_WITH_ERRORS",
+          "FAILED",
+          "CANCELLED"
         ],
         "description": "Current status of the bulk upload process"
       },
@@ -3093,21 +3584,6 @@
           "createdAt"
         ]
       },
-      "AssociateRecruiterRequest": {
-        "type": "object",
-        "properties": {
-          "recruiterId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier of the recruiter to associate",
-            "example": "123e4567-e89b-12d3-a456-426614174000"
-          }
-        },
-        "required": [
-          "recruiterId"
-        ],
-        "additionalProperties": false
-      },
       "BonusStructure": {
         "type": "object",
         "properties": {
@@ -3313,24 +3789,24 @@
       "CandidateStageEnum": {
         "type": "string",
         "enum": [
-          "applied",
-          "screening",
-          "technical",
-          "cultural",
-          "offer",
-          "hired"
+          "APPLIED",
+          "SCREENING",
+          "TECHNICAL",
+          "CULTURAL",
+          "OFFER",
+          "HIRED"
         ],
         "description": "Current stage of the candidate"
       },
       "CandidateStatusEnum": {
         "type": "string",
         "enum": [
-          "New",
-          "Contacted",
-          "Interview",
-          "Offer",
-          "Hired",
-          "Rejected"
+          "NEW",
+          "CONTACTED",
+          "INTERVIEW",
+          "OFFER",
+          "HIRED",
+          "REJECTED"
         ],
         "description": "Current status in the recruitment process"
       },
@@ -3409,30 +3885,6 @@
           "personalInfo",
           "contact",
           "status"
-        ]
-      },
-      "Compensation": {
-        "type": "object",
-        "properties": {
-          "currency": {
-            "$ref": "#/components/schemas/CurrencyEnum"
-          },
-          "salary": {
-            "$ref": "#/components/schemas/SalaryRange"
-          },
-          "benefits": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "List of benefits offered"
-          },
-          "bonuses": {
-            "$ref": "#/components/schemas/BonusStructure"
-          }
-        },
-        "required": [
-          "currency"
         ]
       },
       "ContactInfo": {
@@ -3603,12 +4055,12 @@
       "EducationLevelEnum": {
         "type": "string",
         "enum": [
-          "HighSchool",
-          "Associate",
-          "Bachelor",
-          "Master",
-          "Doctorate",
-          "Professional"
+          "HIGHSCHOOL",
+          "ASSOCIATE",
+          "BACHELOR",
+          "MASTER",
+          "DOCTORATE",
+          "PROFESSIONAL"
         ],
         "description": "Minimum education level required"
       },
@@ -3674,10 +4126,10 @@
       "EmploymentTypeEnum": {
         "type": "string",
         "enum": [
-          "Full-time",
-          "Part-time",
-          "Contract",
-          "Internship"
+          "FULL_TIME",
+          "PART_TIME",
+          "CONTRACT",
+          "INTERNSHIP"
         ],
         "description": "Type of employment"
       },
@@ -3715,11 +4167,11 @@
       "ExperienceLevelEnum": {
         "type": "string",
         "enum": [
-          "Entry",
-          "Mid",
-          "Senior",
-          "Lead",
-          "Executive"
+          "ENTRY",
+          "MID",
+          "SENIOR",
+          "LEAD",
+          "EXECUTIVE"
         ],
         "description": "Experience level required for the position"
       },
@@ -3746,32 +4198,14 @@
           }
         }
       },
-      "FailedAssociation": {
-        "type": "object",
-        "properties": {
-          "candidateId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "ID of the candidate that failed to be associated"
-          },
-          "reason": {
-            "type": "string",
-            "description": "Reason why the association failed"
-          }
-        },
-        "required": [
-          "candidateId",
-          "reason"
-        ]
-      },
       "HiringRecommendationEnum": {
         "type": "string",
         "enum": [
-          "StrongHire",
-          "Hire",
-          "MaybeHire",
-          "NoHire",
-          "StrongNoHire"
+          "STRONGHIRE",
+          "HIRE",
+          "MAYBEHIRE",
+          "NOHIRE",
+          "STRONGNOHIRE"
         ],
         "description": "Hiring recommendation"
       },
@@ -3849,23 +4283,23 @@
       "InterviewStatusEnum": {
         "type": "string",
         "enum": [
-          "Scheduled",
-          "InProgress",
-          "Completed",
-          "Cancelled",
-          "Rescheduled"
+          "SCHEDULED",
+          "INPROGRESS",
+          "COMPLETED",
+          "CANCELLED",
+          "RESCHEDULED"
         ],
         "description": "Current status of the interview"
       },
       "InterviewTypeEnum": {
         "type": "string",
         "enum": [
-          "Phone",
-          "Video",
-          "InPerson",
-          "Technical",
-          "Panel",
-          "Behavioral"
+          "PHONE",
+          "VIDEO",
+          "INPERSON",
+          "TECHNICAL",
+          "PANEL",
+          "BEHAVIORAL"
         ],
         "description": "Type of interview"
       },
@@ -3955,41 +4389,14 @@
           "email"
         ]
       },
-      "JobRequirements": {
-        "type": "object",
-        "properties": {
-          "education": {
-            "$ref": "#/components/schemas/EducationRequirement"
-          },
-          "experience": {
-            "$ref": "#/components/schemas/ExperienceRequirement"
-          },
-          "skills": {
-            "$ref": "#/components/schemas/SkillsRequirement"
-          },
-          "languages": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LanguageRequirement"
-            }
-          },
-          "certifications": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Required or preferred certifications"
-          }
-        }
-      },
       "LanguageProficiencyEnum": {
         "type": "string",
         "enum": [
-          "Basic",
-          "Conversational",
-          "Business",
-          "Fluent",
-          "Native"
+          "BASIC",
+          "CONVERSATIONAL",
+          "BUSINESS",
+          "FLUENT",
+          "NATIVE"
         ],
         "description": "Proficiency level"
       },
@@ -4150,22 +4557,22 @@
       "PublicationPlatformEnum": {
         "type": "string",
         "enum": [
-          "LinkedIn",
-          "Computrabajo",
-          "Indeed",
-          "Glassdoor",
-          "CompanyWebsite",
-          "Other"
+          "LINKEDIN",
+          "COMPUTRABAJO",
+          "INDEED",
+          "GLASSDOOR",
+          "COMPANYWEBSITE",
+          "OTHER"
         ],
         "description": "Platform where the job is published"
       },
       "PublicationStatusEnum": {
         "type": "string",
         "enum": [
-          "Draft",
-          "Published",
-          "Expired",
-          "Suspended"
+          "DRAFT",
+          "PUBLISHED",
+          "EXPIRED",
+          "SUSPENDED"
         ],
         "description": "Current status of the publication"
       },
@@ -4225,71 +4632,6 @@
           "platform",
           "url",
           "status"
-        ]
-      },
-      "RecruiterAssociationResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier of the association",
-            "example": "456e7890-f12c-34e5-b678-901234567890"
-          },
-          "recruitmentProcessId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "ID of the recruitment process",
-            "example": "123e4567-e89b-12d3-a456-426614174000"
-          },
-          "recruiterId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "ID of the associated recruiter",
-            "example": "789e0123-456f-78g9-h012-345678901234"
-          },
-          "recruiterName": {
-            "type": "string",
-            "description": "Name of the associated recruiter",
-            "example": "Jane Smith"
-          },
-          "recruiterEmail": {
-            "type": "string",
-            "format": "email",
-            "description": "Email of the associated recruiter",
-            "example": "jane.smith@company.com"
-          },
-          "recruiterDepartment": {
-            "type": "string",
-            "description": "Department of the associated recruiter",
-            "example": "Human Resources"
-          },
-          "assignedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the recruiter was assigned",
-            "example": "2025-08-19T10:30:00Z"
-          },
-          "assignedBy": {
-            "type": "string",
-            "description": "Who assigned this recruiter",
-            "example": "john.manager@company.com"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the association is active",
-            "example": true
-          }
-        },
-        "required": [
-          "id",
-          "recruitmentProcessId",
-          "recruiterId",
-          "recruiterName",
-          "recruiterEmail",
-          "assignedAt",
-          "assignedBy",
-          "isActive"
         ]
       },
       "RecruiterListResponse": {
@@ -4454,6 +4796,13 @@
           "status": {
             "$ref": "#/components/schemas/RecruitmentStatusEnum"
           },
+          "statusLabel": {
+            "type": "string",
+            "description": "Label of status Enum"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/RecruitmentStageEnum"
+          },
           "metrics": {
             "$ref": "#/components/schemas/RecruitmentMetrics"
           },
@@ -4476,10 +4825,23 @@
       "RecruitmentStatusEnum": {
         "type": "string",
         "enum": [
-          "Active",
-          "Paused",
-          "Completed",
-          "Cancelled"
+          "ACTIVE",
+          "PAUSED",
+          "COMPLETED",
+          "CANCELLED"
+        ],
+        "description": "Current status in the recruitment process"
+      },
+      "RecruitmentStageEnum": {
+        "type": "string",
+        "enum": [
+          "CREATED",
+          "PUBLISHED",
+          "SOURCING",
+          "SCREENING",
+          "INTERVIEWS",
+          "SHORT_LIST",
+          "HIRING"
         ],
         "description": "Current status in the recruitment process"
       },
@@ -4541,52 +4903,20 @@
       "RequirementPriorityEnum": {
         "type": "string",
         "enum": [
-          "High",
-          "Medium",
-          "Low"
+          "HIGH",
+          "MEDIUM",
+          "LOW"
         ],
         "description": "Priority level of the requirement"
-      },
-      "RequirementRequester": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier for the requester"
-          },
-          "name": {
-            "type": "string",
-            "description": "Full name of the requester"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "description": "Email address of the requester"
-          },
-          "role": {
-            "type": "string",
-            "description": "Job title/role of the requester"
-          },
-          "department": {
-            "type": "string",
-            "description": "Department of the requester"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "email"
-        ]
       },
       "RequirementStatusEnum": {
         "type": "string",
         "enum": [
-          "Active",
-          "Draft",
-          "Closed",
-          "Email",
-          "Recruitment"
+          "ACTIVE",
+          "DRAFT",
+          "CLOSED",
+          "EMAIL",
+          "RECRUITMENT"
         ],
         "description": "Status of the requirement"
       },
@@ -4609,11 +4939,23 @@
           "priority": {
             "$ref": "#/components/schemas/RequirementPriorityEnum"
           },
+          "priorityLabel": {
+            "type": "string",
+            "example": "Urgente"
+          },
           "timeframe": {
             "$ref": "#/components/schemas/TimeframeEnum"
           },
+          "timeframeLabel": {
+            "type": "string",
+            "example": "Inmediata"
+          },
           "experienceLevel": {
             "$ref": "#/components/schemas/ExperienceLevelEnum"
+          },
+          "experienceLevelLabel": {
+            "type": "string",
+            "example": "Senior"
           },
           "workType": {
             "type": "string",
@@ -4621,6 +4963,10 @@
           },
           "employmentType": {
             "$ref": "#/components/schemas/EmploymentTypeEnum"
+          },
+          "employmentTypeLabel": {
+            "type": "string",
+            "example": "Remote"
           },
           "salaryMin": {
             "type": "number",
@@ -4668,6 +5014,10 @@
           "status": {
             "$ref": "#/components/schemas/RequirementStatusEnum"
           },
+          "statusLabel": {
+            "type": "string",
+            "example": "Pending"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -4690,11 +5040,11 @@
       "SalaryFrequencyEnum": {
         "type": "string",
         "enum": [
-          "Hourly",
-          "Daily",
-          "Weekly",
-          "Monthly",
-          "Yearly"
+          "HOURLY",
+          "DAILY",
+          "WEEKLY",
+          "MONTHLY",
+          "YEARLY"
         ],
         "description": "Salary payment frequency"
       },
@@ -4724,10 +5074,10 @@
       "SkillLevelEnum": {
         "type": "string",
         "enum": [
-          "Beginner",
-          "Intermediate",
-          "Advanced",
-          "Expert"
+          "BEGINNER",
+          "INTERMEDIATE",
+          "ADVANCED",
+          "EXPERT"
         ],
         "description": "Required proficiency level"
       },
@@ -4776,32 +5126,13 @@
           }
         }
       },
-      "SortByEnum": {
-        "type": "string",
-        "enum": [
-          "createdAt",
-          "updatedAt",
-          "title",
-          "department",
-          "priority"
-        ],
-        "description": "Field to sort by"
-      },
-      "SortOrderEnum": {
-        "type": "string",
-        "enum": [
-          "asc",
-          "desc"
-        ],
-        "description": "Order for sorting"
-      },
       "TimeframeEnum": {
         "type": "string",
         "enum": [
-          "Immediate",
-          "1-2 months",
-          "3-6 months",
-          "6+ months"
+          "IMMEDIATE",
+          "NORMAL",
+          "FLEXIBLE",
+          "LONG_TERM"
         ],
         "description": "Timeframe for the requirement"
       },
@@ -4877,7 +5208,7 @@
             "description": "Description/content of the publication"
           },
           "status": {
-            "$ref": "#/components/schemas/UpdatePublicationStatusEnum"
+            "$ref": "#/components/schemas/PublicationStatusEnum"
           },
           "publishedAt": {
             "type": "string",
@@ -4930,17 +5261,6 @@
             "description": "Number of comments"
           }
         }
-      },
-      "UpdatePublicationStatusEnum": {
-        "type": "string",
-        "enum": [
-          "Draft",
-          "Published",
-          "Expired",
-          "Suspended",
-          "Archived"
-        ],
-        "description": "Status of the publication"
       },
       "UpdateRecruitmentRequest": {
         "type": "object",
@@ -5065,45 +5385,15 @@
           "status"
         ]
       },
-      "StageEnum": {
+      "StageStatusEnum": {
         "type": "string",
         "enum": [
-          "applied",
-          "screening",
-          "technical",
-          "cultural",
-          "offer",
-          "hired"
+          "UPCOMING",
+          "CURRENT",
+          "COMPLETE",
+          "CANCELLED"
         ],
         "description": "Recruitment process stages"
-      },
-      "RecruitmentStage": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "$ref": "#/components/schemas/StageEnum"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "in-progress",
-              "complete",
-              "blocked"
-            ],
-            "description": "Status of the recruitment stage",
-            "default": "pending"
-          },
-          "dueDate": {
-            "type": "string",
-            "format": "date",
-            "description": "Due date for completing this stage"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "description": "Represents a stage in the recruitment process"
       },
       "StageDueDate": {
         "type": "object",
@@ -5114,7 +5404,10 @@
             "description": "Unique identifier for the stage due date"
           },
           "stage": {
-            "$ref": "#/components/schemas/StageEnum"
+            "$ref": "#/components/schemas/RecruitmentStageEnum"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StageStatusEnum"
           },
           "dueDate": {
             "type": "string",
@@ -5127,11 +5420,6 @@
             "maximum": 30,
             "description": "Number of days before due date to send alert",
             "example": 3
-          },
-          "isCompleted": {
-            "type": "boolean",
-            "description": "Whether this stage has been completed",
-            "example": false
           },
           "completedAt": {
             "type": "string",
@@ -5165,7 +5453,10 @@
         "type": "object",
         "properties": {
           "stage": {
-            "$ref": "#/components/schemas/StageEnum"
+            "$ref": "#/components/schemas/RecruitmentStageEnum"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StageStatusEnum"
           },
           "dueDate": {
             "type": "string",
@@ -5188,6 +5479,7 @@
         },
         "required": [
           "stage",
+          "status",
           "dueDate"
         ],
         "additionalProperties": false

@@ -8,13 +8,14 @@ GeniaHR Frontend is a React + TypeScript HR management application built with Vi
 
 ## Development Commands
 
-### Building and Running
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
+npm run dev          # Start development server (localhost:5173)
+npm run build        # Build for production (outputs to dist/)
 npm run preview      # Preview production build
 npm run lint         # Run ESLint
 ```
+
+**Note:** No testing framework is currently configured. Test files in `__tests__/` directories are manual test utilities, not automated tests.
 
 ### Deployment
 ```bash
@@ -133,6 +134,8 @@ The frontend integrates with multiple microservices:
 - **Candidate API** (`/candidateapi/v1`) - Candidate data management
 - **N8N Webhooks** - AI generation, LinkedIn posting, RPA automation
 
+OpenAPI specifications are available in `openapi/` directory (e.g., `recruitmentapi.json`) for API reference.
+
 ## Development Patterns
 
 ### Creating a New Feature Service
@@ -233,6 +236,7 @@ Use `./scripts/run.sh` for automated deployment pipeline
 | `/recruitment` | Recruitment | recruiter-supervisor, recruiter | Recruitment processes |
 | `/recruitment/:id/candidates` | RecruitmentCandidates | recruiter-supervisor, recruiter | Candidates for process |
 | `/recruitment/:id/candidates/bulk-upload` | BulkCandidateUpload | recruiter-supervisor, recruiter | Bulk candidate upload |
+| `/recruitment/:id/candidates/ai-generate` | AIGenerate | recruiter-supervisor, recruiter | AI candidate generation |
 | `/candidates` | Candidates | Authenticated | All candidates |
 | `/interviews` | Interviews | Authenticated | Interview list |
 | `/interviews/:id` | InterviewDetailPage | Authenticated | Interview details |
@@ -248,3 +252,5 @@ Use `./scripts/run.sh` for automated deployment pipeline
 - All API services use bearer token authentication automatically via HttpClient interceptors
 - Toast notifications (react-hot-toast) are used for user feedback throughout the application
 - TypeScript strict mode is enabled - all API interactions should be properly typed
+- Imports use relative paths (no `@/` alias configured) - e.g., `import { httpClient } from '../../shared/api/httpClient'`
+- UI text is primarily in Spanish (application localized for Spanish-speaking users)

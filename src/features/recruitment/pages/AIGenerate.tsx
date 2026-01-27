@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 // Hooks
-import { useAIGenerate } from '../hooks/useAIGenerate';
+import { useAIGeneration } from '../hooks/useAIGeneration';
 
 // Services
 import { AIGenerateRequest, AIGenerateResponse } from '../api/aiGenerateService';
@@ -30,11 +30,13 @@ const AIGeneratePage: React.FC = () => {
   // Custom hook
   const {
     prompts,
+    aiGenerations,
     loading,
     submitting,
     error,
     createPrompt,
     fetchPrompts,
+    fetchAIGenerations,
     cancelPrompt,
     retryPrompt,
     deletePrompt,
@@ -42,7 +44,7 @@ const AIGeneratePage: React.FC = () => {
     refreshPrompts,
     clearError,
     generateJobPrompt
-  } = useAIGenerate(id || '');
+  } = useAIGeneration(id || '');
 
   // Fetch recruitment process data
   useEffect(() => {
@@ -71,8 +73,9 @@ const AIGeneratePage: React.FC = () => {
   useEffect(() => {
     if (id) {
       fetchPrompts(id);
+      fetchAIGenerations(id);
     }
-  }, [id, fetchPrompts]);
+  }, [id, fetchPrompts, fetchAIGenerations]);
 
   // Event handlers
   const handleGeneratePrompt = async () => {
@@ -173,7 +176,7 @@ const AIGeneratePage: React.FC = () => {
   const getStatusIcon = (status: AIGenerateResponse['status']) => {
     switch (status) {
       case 'pending':
-        return <Clock className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-yellow-500" />;
       case 'processing':
         return <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />;
       case 'completed':
@@ -181,22 +184,56 @@ const AIGeneratePage: React.FC = () => {
       case 'failed':
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <AlertCircle className="h-4 w-4 text-gray-500" />;
+        return <Clock className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getAIGenerationStatusIcon = (status: import('../types/aiGeneration.types').AIGenerationStatusEnum) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'generating':
+      case 'validating':
+        return <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />;
+      case 'completed':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'failed':
+      case 'cancelled':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
   const getStatusColor = (status: AIGenerateResponse['status']) => {
     switch (status) {
       case 'pending':
-        return 'text-gray-600 bg-gray-50';
+        return 'bg-yellow-100 text-yellow-800';
       case 'processing':
-        return 'text-blue-600 bg-blue-50';
+        return 'bg-blue-100 text-blue-800';
       case 'completed':
-        return 'text-green-600 bg-green-50';
+        return 'bg-green-100 text-green-800';
       case 'failed':
-        return 'text-red-600 bg-red-50';
+        return 'bg-red-100 text-red-800';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getAIGenerationStatusColor = (status: import('../types/aiGeneration.types').AIGenerationStatusEnum) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'generating':
+      case 'validating':
+        return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'failed':
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -256,7 +293,7 @@ const AIGeneratePage: React.FC = () => {
     );
   }
 
-  const MAX_LENGHT_PROMPT = 900;
+  const MAX_LENGTH_PROMPT = 900;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -308,9 +345,9 @@ const AIGeneratePage: React.FC = () => {
               <div className="flex items-center">
                 <Clock className="h-4 w-4 mr-2" />
                 Monitor Prompts
-                {prompts.length > 0 && (
+                {(prompts.length > 0 || aiGenerations.data.length > 0) && (
                   <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-purple-600 rounded-full">
-                    {prompts.length}
+                    {prompts.length + aiGenerations.data.length}
                   </span>
                 )}
               </div>
@@ -333,17 +370,17 @@ const AIGeneratePage: React.FC = () => {
       {viewMode === 'create' && (
         <div className="space-y-6">
           {/* Quick Access Banner */}
-          {prompts.length > 0 && (
+          {(prompts.length > 0 || aiGenerations.data.length > 0) && (
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <Clock className="h-5 w-5 text-purple-600 mr-2" />
                   <div>
                     <div className="font-medium text-purple-900">
-                      {prompts.length} prompt{prompts.length !== 1 ? 's' : ''} in queue
+                      {prompts.length + aiGenerations.data.length} AI generation{prompts.length + aiGenerations.data.length !== 1 ? 's' : ''} in queue
                     </div>
                     <div className="text-sm text-purple-700">
-                      {prompts.filter(p => p.status === 'processing').length} currently processing
+                      {prompts.filter(p => p.status === 'processing').length + aiGenerations.data.filter(g => g.status === 'generating').length} currently processing
                     </div>
                   </div>
                 </div>
@@ -427,8 +464,8 @@ const AIGeneratePage: React.FC = () => {
                   <p className="text-xs text-gray-500">
                     Be specific about skills, experience level, and qualifications you're looking for.
                   </p>
-                  <span className={`text-xs ${prompt.length > MAX_LENGHT_PROMPT ? 'text-red-600' : 'text-gray-500'}`}>
-                    {prompt.length}/{MAX_LENGHT_PROMPT}
+                  <span className={`text-xs ${prompt.length > MAX_LENGTH_PROMPT ? 'text-red-600' : 'text-gray-500'}`}>
+                    {prompt.length}/{MAX_LENGTH_PROMPT}
                   </span>
                 </div>
               </div>
@@ -458,7 +495,7 @@ const AIGeneratePage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting || !prompt.trim() || prompt.length > 500}
+                  disabled={submitting || !prompt.trim() || prompt.length > MAX_LENGTH_PROMPT}
                   className="flex items-center px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
@@ -548,7 +585,7 @@ const AIGeneratePage: React.FC = () => {
           )}
 
           {/* Prompts List */}
-          {prompts.length > 0 && (
+          {(prompts.length > 0 || aiGenerations.data.length > 0) && (
             <>
               {/* Summary Stats */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -558,8 +595,8 @@ const AIGeneratePage: React.FC = () => {
                       <Sparkles className="h-5 w-5 text-purple-600" />
                     </div>
                     <div className="ml-3">
-                      <div className="text-sm font-medium text-gray-500">Total Prompts</div>
-                      <div className="text-2xl font-bold text-gray-900">{prompts.length}</div>
+                      <div className="text-sm font-medium text-gray-500">Total Generations</div>
+                      <div className="text-2xl font-bold text-gray-900">{prompts.length + aiGenerations.data.length}</div>
                     </div>
                   </div>
                 </div>
@@ -572,7 +609,7 @@ const AIGeneratePage: React.FC = () => {
                     <div className="ml-3">
                       <div className="text-sm font-medium text-gray-500">Processing</div>
                       <div className="text-2xl font-bold text-gray-900">
-                        {prompts.filter(p => p.status === 'processing').length}
+                        {prompts.filter(p => p.status === 'processing').length + aiGenerations.data.filter(g => g.status === 'generating' || g.status === 'validating').length}
                       </div>
                     </div>
                   </div>
@@ -586,7 +623,7 @@ const AIGeneratePage: React.FC = () => {
                     <div className="ml-3">
                       <div className="text-sm font-medium text-gray-500">Completed</div>
                       <div className="text-2xl font-bold text-gray-900">
-                        {prompts.filter(p => p.status === 'completed').length}
+                        {prompts.filter(p => p.status === 'completed').length + aiGenerations.data.filter(g => g.status === 'completed').length}
                       </div>
                     </div>
                   </div>
@@ -600,7 +637,7 @@ const AIGeneratePage: React.FC = () => {
                     <div className="ml-3">
                       <div className="text-sm font-medium text-gray-500">Failed</div>
                       <div className="text-2xl font-bold text-gray-900">
-                        {prompts.filter(p => p.status === 'failed').length}
+                        {prompts.filter(p => p.status === 'failed').length + aiGenerations.data.filter(g => g.status === 'failed' || g.status === 'cancelled').length}
                       </div>
                     </div>
                   </div>
@@ -613,7 +650,10 @@ const AIGeneratePage: React.FC = () => {
                   <h3 className="text-lg font-medium text-gray-900">AI Generation Prompts</h3>
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => refreshPrompts(id)}
+                      onClick={() => {
+                        refreshPrompts(id);
+                        fetchAIGenerations(id);
+                      }}
                       disabled={loading}
                       className="text-sm text-gray-600 hover:text-gray-800 font-medium px-3 py-1 rounded border border-gray-300 hover:border-gray-400 transition-colors disabled:opacity-50"
                     >
@@ -714,6 +754,62 @@ const AIGeneratePage: React.FC = () => {
                   ))}
                 </div>
               </div>
+
+              {/* AI Generations List */}
+              {aiGenerations.data.length > 0 && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">AI Generation History</h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    {aiGenerations.data.map((generation) => (
+                      <div
+                        key={generation.generationId}
+                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center mb-2">
+                              {getAIGenerationStatusIcon(generation.status)}
+                              <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getAIGenerationStatusColor(generation.status)}`}>
+                                {generation.status.charAt(0).toUpperCase() + generation.status.slice(1)}
+                              </span>
+                            </div>
+                            
+                            <div className="text-sm text-gray-900 mb-2">
+                              <div className="font-medium">Generation ID: {generation.generationId}</div>
+                              <div className="text-gray-600">
+                                Requested: {generation.requestedCount} candidates · Generated: {generation.generatedCount} candidates
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center text-xs text-gray-500 space-x-4">
+                              <span>Created: {new Date(generation.createdAt).toLocaleString()}</span>
+                              {generation.completedAt && (
+                                <span>Completed: {new Date(generation.completedAt).toLocaleString()}</span>
+                              )}
+                              {generation.processingTime && (
+                                <span>Duration: {(generation.processingTime / 1000).toFixed(1)}s</span>
+                              )}
+                            </div>
+
+                            {generation.currentOperation && (
+                              <div className="mt-2 text-xs text-blue-600">
+                                {generation.currentOperation}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center space-x-2 ml-4">
+                            <ChevronRight className="h-4 w-4 text-gray-400" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
