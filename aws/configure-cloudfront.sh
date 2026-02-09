@@ -1,22 +1,66 @@
 #!/bin/bash
 # Configurar CloudFront para servir el bucket S3 con HTTPS
 
-BUCKET_NAME=$1
-DOMAIN_NAME=$2
-CERT_ALIAS=$3
-REGION=$4
+# Load commons
+SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+source "${SCRIPT_DIR}/commons/log.sh"
+source "${SCRIPT_DIR}/commons/validate.sh"
+source "${SCRIPT_DIR}/commons/check.sh"
 
-if [ -z "$BUCKET_NAME" ] || [ -z "$DOMAIN_NAME" ] || [ -z "$CERT_ALIAS" ] || [ -z "$REGION" ]; then
-  echo "❌ Uso: ./configure-cloudfront.sh <bucket-name> <domain-name> <cert-alias> <region>"
-  echo "   Ejemplo: ./configure-cloudfront.sh dientecitas.com dientecitas.com '*.dientecitas.com' us-east-1"
-  exit 1
+# Set module name for logging
+MODULE_NAME="configure-cloudfront.sh"
+
+# Parse parameters
+BUCKET_NAME="$1"
+DOMAIN_NAME="$2"
+CERT_ALIAS="$3"
+REGION="$4"
+PROFILE="${5:-${AWS_PROFILE:-default}}"
+
+# Show help function
+show_help() {
+    cat << EOF
+🌐 Configurar CloudFront con HTTPS
+
+Uso: ./configure-cloudfront.sh <bucket-name> <domain-name> <cert-alias> <region> [profile]
+
+Parámetros:
+  bucket-name      Nombre del bucket S3
+  domain-name      Nombre de dominio para CloudFront
+  cert-alias       Alias del certificado SSL (debe existir en ACM us-east-1)
+  region           Región AWS del bucket
+  profile          Perfil de AWS (default: default o \$AWS_PROFILE)
+
+Ejemplos:
+  ./configure-cloudfront.sh mi-bucket midominio.com midominio.com us-east-1
+  ./configure-cloudfront.sh mi-bucket midominio.com "*.midominio.com" us-east-1 production
+  AWS_PROFILE=dev ./configure-cloudfront.sh mi-bucket midominio.com midominio.com us-east-1
+
+Nota: Los certificados SSL para CloudFront deben estar en la región us-east-1
+
+EOF
+}
+
+# Check for help parameter
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    show_help
+    exit 0
 fi
 
-echo "🌐 Configurando CloudFront para $DOMAIN_NAME..."
+# Validate parameters
+if [ -z "$BUCKET_NAME" ] || [ -z "$DOMAIN_NAME" ] || [ -z "$CERT_ALIAS" ] || [ -z "$REGION" ]; then
+    handle_error "Uso: ./configure-cloudfront.sh <bucket-name> <domain-name> <cert-alias> <region> [profile]"
+fi
+
+# Validate AWS configuration
+validate_aws_config "$PROFILE" "$REGION"
+validate_s3_bucket "$BUCKET_NAME" "$PROFILE"
+
+log "INFO" "🌐 Configurando CloudFront para $DOMAIN_NAME (profile: $PROFILE)"
 
 # Buscar certificado en ACM usando CERT_ALIAS (us-east-1 requerido para CloudFront)
-echo "🔍 Buscando certificado para: $CERT_ALIAS"
-CERT_ARN=$(aws acm list-certificates --region us-east-1 \
+log "INFO" "🔍 Buscando certificado para: $CERT_ALIAS"
+CERT_ARN=$(aws acm list-certificates --region us-east-1 --profile "$PROFILE" \
   --query "CertificateSummaryList[?DomainName=='$CERT_ALIAS'].CertificateArn" --output text)
 
 if [ -z "$CERT_ARN" ]; then
@@ -26,15 +70,16 @@ if [ -z "$CERT_ARN" ]; then
     --domain-name "$CERT_ALIAS" \
     --validation-method DNS \
     --query CertificateArn --output text)
-  echo "✅ Certificado solicitado: $CERT_ARN"
+  log "SUCCESS" "Certificado solicitado: $CERT_ARN"
 
-  echo "⚠️ Debes crear un registro CNAME en tu DNS para validar el certificado."
+  log "WARN" "Debes crear un registro CNAME en tu DNS para validar el certificado."
   aws acm describe-certificate \
     --region us-east-1 \
+    --profile "$PROFILE" \
     --certificate-arn "$CERT_ARN" \
     --query "Certificate.DomainValidationOptions" \
     --output table
-  echo "⏳ Espera a que el certificado esté en estado ISSUED antes de continuar."
+  log "INFO" "⏳ Espera a que el certificado esté en estado ISSUED antes de continuar."
   exit 0
 else
   echo "✅ Certificado encontrado: $CERT_ARN"
@@ -43,6 +88,7 @@ fi
 # Verificar el estado del certificado
 CERT_STATUS=$(aws acm describe-certificate \
   --region us-east-1 \
+  --profile "$PROFILE" \
   --certificate-arn "$CERT_ARN" \
   --query "Certificate.Status" --output text)
 
@@ -56,8 +102,8 @@ fi
 ORIGIN_ID="S3-$BUCKET_NAME"
 
 # Crear la distribución de CloudFront
-echo "🚀 Creando distribución de CloudFront..."
-CREATE_OUTPUT=$(aws cloudfront create-distribution --output json --distribution-config "{
+log "INFO" "🚀 Creando distribución de CloudFront..."
+CREATE_OUTPUT=$(aws cloudfront create-distribution --profile "$PROFILE" --output json --distribution-config "{
   \"CallerReference\": \"$(date +%s)\",
   \"Comment\": \"Distribución para $DOMAIN_NAME\",
   \"Aliases\": {

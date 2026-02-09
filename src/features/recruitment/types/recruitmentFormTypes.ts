@@ -1,4 +1,5 @@
 // types/recruitmentFormTypes.ts
+import { RequirementStatus } from '../../requirement/types/requirementsTypes';
 import { EmploymentType, ExperienceLevel, Priority, Recruiter, RecruitmentProcess, Requirement, Timeframe } from './recruitment';
 
 export interface RequirementFormType {
@@ -57,7 +58,7 @@ export interface RecruitmentFormSubmissionData extends RequirementFormType {
   // Additional fields that might be added during form submission
   createdBy?: string;
   organizationId?: string;
-  status?: 'Draft' | 'Pending' | 'Active' | 'Paused' | 'Completed' | 'Cancelled';
+  status?: RequirementStatus;
 }
 
 // Validation errors interface

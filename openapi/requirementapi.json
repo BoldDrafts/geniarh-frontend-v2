@@ -1,0 +1,575 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "GenIA-HR Requirements API",
+    "description": "API specification for managing recruitment requirements",
+    "version": "1.0.0",
+    "contact": {
+      "name": "RAGFlow Support",
+      "email": "support@ragflow.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://geniahrapi.synopsis.cloud/requirementapi/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:8080/requirementapi/v1",
+      "description": "Local development"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "StatusEnum": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "DRAFT",
+          "CLOSED",
+          "DELETE",
+          "APPROVED",
+          "RECRUITMENT",
+          "EMAIL"
+        ],
+        "example": "ACTIVE"
+      },
+      "SalaryCurrencyEnum": {
+        "type": "string",
+        "enum": [
+          "PEN",
+          "USD"
+        ],
+        "example": "USD"
+      },
+      "PriorityEnum": {
+        "type": "string",
+        "enum": [
+          "HIGH",
+          "MEDIUM",
+          "LOW"
+        ],
+        "example": "HIGH"
+      },
+      "TimeframeEnum": {
+        "type": "string",
+        "enum": [
+          "IMMEDIATE",
+          "NORMAL",
+          "FLEXIBLE",
+          "LONG_TERM"
+        ],
+        "example": "IMMEDIATE"
+      },
+      "ExperienceLevelEnum": {
+        "type": "string",
+        "enum": [
+          "ENTRY",
+          "MID",
+          "SENIOR",
+          "LEAD",
+          "EXECUTIVE"
+        ],
+        "example": "SENIOR"
+      },
+      "EmploymentTypeEnum": {
+        "type": "string",
+        "enum": [
+          "FULL_TIME",
+          "PART_TIME",
+          "CONTRACT",
+          "INTERNSHIP"
+        ],
+        "example": "FULL_TIME"
+      },
+      "RequirementSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "title": {
+            "type": "string",
+            "example": "Senior Frontend Developer"
+          },
+          "department": {
+            "type": "string",
+            "example": "Engineering"
+          },
+          "location": {
+            "type": "string",
+            "example": "Remote"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatusEnum"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Requirement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "title": {
+            "type": "string",
+            "example": "Senior Frontend Developer"
+          },
+          "department": {
+            "type": "string",
+            "example": "Engineering"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/PriorityEnum"
+          },
+          "timeframe": {
+            "$ref": "#/components/schemas/TimeframeEnum"
+          },
+          "experienceLevel": {
+            "type": "string",
+            "$ref": "#/components/schemas/ExperienceLevelEnum"
+          },
+          "location": {
+            "type": "string",
+            "example": "Remote"
+          },
+          "employmentType": {
+            "$ref": "#/components/schemas/EmploymentTypeEnum"
+          },
+          "salaryMin": {
+            "type": "number",
+            "example": 100000
+          },
+          "salaryMax": {
+            "type": "number",
+            "example": 150000
+          },
+          "salaryCurrency": {
+            "$ref": "#/components/schemas/SalaryCurrencyEnum"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "React",
+              "TypeScript",
+              "Node.js"
+            ]
+          },
+          "softSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Communication",
+              "Problem Solving",
+              "Creativity"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "example": "We are looking for an experienced Senior Frontend Developer..."
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatusEnum"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "title",
+          "department",
+          "priority",
+          "timeframe",
+          "experienceLevel",
+          "location",
+          "employmentType",
+          "salaryMin",
+          "salaryMax",
+          "salaryCurrency",
+          "skills",
+          "description",
+          "status"
+        ]
+      },
+      "StatusUpdateRequest": {
+        "type": "object",
+        "description": "Request object for updating the status of a requirement",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/StatusEnum"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "Pagination": {
+        "type": "object",
+        "description": "Pagination information",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "Total number of items",
+            "example": 42
+          },
+          "pages": {
+            "type": "integer",
+            "description": "Total number of pages",
+            "example": 3
+          },
+          "current": {
+            "type": "integer",
+            "description": "Current page number",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Number of items per page",
+            "example": 20
+          }
+        },
+        "required": [
+          "total",
+          "pages",
+          "current",
+          "limit"
+        ]
+      },
+      "RequirementListResponse": {
+        "type": "object",
+        "description": "Response for the list requirements operation",
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "List of requirements",
+            "items": {
+              "$ref": "#/components/schemas/RequirementSummary"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Access token is missing or invalid",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFoundError": {
+        "description": "The specified resource was not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "The request parameters failed validation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/requirements": {
+      "get": {
+        "operationId": "listRequirements",
+        "summary": "List all requirements",
+        "description": "Retrieve a list of recruitment requirements",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "$ref": "#/components/schemas/StatusEnum"
+            },
+            "description": "Filter requirements by status"
+          },
+          {
+            "in": "query",
+            "name": "department",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter requirements by department"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "description": "Number of items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of requirements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createRequirement",
+        "summary": "Create a new requirement",
+        "description": "Create a new recruitment requirement",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Requirement"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Requirement created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Requirement"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/requirements/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Requirement ID"
+        }
+      ],
+      "get": {
+        "operationId": "getRequirement",
+        "summary": "Get a requirement by ID",
+        "description": "Retrieve detailed information about a specific requirement",
+        "responses": {
+          "200": {
+            "description": "Requirement details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Requirement"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateRequirement",
+        "summary": "Update a requirement",
+        "description": "Update an existing requirement",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Requirement"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Requirement updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Requirement"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteRequirement",
+        "summary": "Delete a requirement",
+        "description": "Delete an existing requirement",
+        "responses": {
+          "204": {
+            "description": "Requirement deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/requirements/{id}/status": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Requirement ID"
+        }
+      ],
+      "patch": {
+        "operationId": "updateRequirementStatus",
+        "summary": "Update requirement status",
+        "description": "Update the status of an existing requirement. Only supports status transitions to Active, Draft, or Closed.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusUpdateRequest"
+              },
+              "example": {
+                "status": "Active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Requirement"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    }
+  }
+}

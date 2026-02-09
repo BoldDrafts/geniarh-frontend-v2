@@ -61,65 +61,52 @@ export interface PublicationEngagement {
   saves?: number;
 }
 
-// ==================== ENUMS AND TYPES (From Original Service) ====================
+// ==================== ENUMS AND TYPES (From OpenAPI Specification) ====================
 
-export type RequirementPriority = 'High' | 'Medium' | 'Low';
+export type RequirementPriority = 'HIGH' | 'MEDIUM' | 'LOW';
 
 export type RequirementTimeframe = 
-  | 'Immediate' 
-  | '1-2 months' 
-  | '3-6 months' 
-  | '6+ months';
+  | 'IMMEDIATE' 
+  | 'NORMAL' 
+  | 'FLEXIBLE' 
+  | 'LONG_TERM';
 
 export type ExperienceLevel = 
-  | 'Entry' 
-  | 'Mid' 
-  | 'Senior' 
-  | 'Lead' 
-  | 'Executive';
+  | 'ENTRY' 
+  | 'MID' 
+  | 'SENIOR' 
+  | 'LEAD' 
+  | 'EXECUTIVE';
 
 export type EmploymentType = 
-  | 'Full-time' 
-  | 'Part-time' 
-  | 'Contract' 
-  | 'Internship'
-  | 'Freelance'
-  | 'Temporary';
+  | 'FULL_TIME' 
+  | 'PART_TIME' 
+  | 'CONTRACT' 
+  | 'INTERNSHIP';
 
-export type SalaryCurrency = 'USD' | 'PEN';
+export type SalaryCurrency = 'PEN' | 'USD';
 
-// Status from original service
+// Status from OpenAPI
 export type RequirementStatus = 
-  | 'Active' 
-  | 'Draft' 
-  | 'Closed' 
-  | 'Approved'
-  | 'Rejected'
-  | 'Expired'
-  | 'On Hold';
+  | 'ACTIVE' 
+  | 'DRAFT' 
+  | 'CLOSED' 
+  | 'DELETE'
+  | 'APPROVED'
+  | 'RECRUITMENT'
+  | 'EMAIL';
 
-// Platforms from original service
-export type PublicationPlatform = 
-  | 'LinkedIn' 
-  | 'Computrabajo' 
-  | 'Other'
-  | 'Indeed'
-  | 'Glassdoor'
-  | 'ZipRecruiter'
-  | 'AngelList'
-  | 'Stack Overflow Jobs'
-  | 'GitHub Jobs'
-  | 'Remote.co'
-  | 'We Work Remotely';
+// Platforms - keeping original values as they're not in OpenAPI
+export type PublicationPlatform =  
+  | 'LINKEDIN' 
+  | 'COMPUTRABAJO' 
+  | 'INDEED' 
+  | 'GLASSDOOR' 
+  | 'COMPANYWEBSITE' 
+  | 'OTHER';
 
-// Status from original service
-export type PublicationStatus = 
-  | 'Draft' 
-  | 'Published' 
-  | 'Expired'
-  | 'Paused'
-  | 'Rejected'
-  | 'Under Review';
+// Status - keeping original values as they're not in OpenAPI
+export type PublicationStatus = 'DRAFT' | 'PUBLISHED' | 'EXPIRED' | 'SUSPENDED' | 'ARCHIVED';
 
 // ==================== REQUEST/RESPONSE INTERFACES (Compatible with BaseService) ====================
 
@@ -133,8 +120,8 @@ export interface RequirementListParams {
   limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-  // Requirement specific filters
-  status?: 'Active' | 'Draft' | 'Closed'; // Mantenemos los originales del servicio
+  // Requirement specific filters (matching OpenAPI)
+  status?: RequirementStatus;
   department?: string;
   priority?: RequirementPriority;
   experienceLevel?: ExperienceLevel;
@@ -397,30 +384,28 @@ export interface RequirementExportResponse {
 
 // ==================== CONSTANTS ====================
 
-export const REQUIREMENT_PRIORITIES: RequirementPriority[] = ['High', 'Medium', 'Low'];
+export const REQUIREMENT_PRIORITIES: RequirementPriority[] = ['HIGH', 'MEDIUM', 'LOW'];
 
 export const REQUIREMENT_TIMEFRAMES: RequirementTimeframe[] = [
-  'Immediate',
-  '1-2 months',
-  '3-6 months',
-  '6+ months'
+  'IMMEDIATE',
+  'NORMAL',
+  'FLEXIBLE',
+  'LONG_TERM'
 ];
 
 export const EXPERIENCE_LEVELS: ExperienceLevel[] = [
-  'Entry',
-  'Mid',
-  'Senior',
-  'Lead',
-  'Executive'
+  'ENTRY',
+  'MID',
+  'SENIOR',
+  'LEAD',
+  'EXECUTIVE'
 ];
 
 export const EMPLOYMENT_TYPES: EmploymentType[] = [
-  'Full-time',
-  'Part-time',
-  'Contract',
-  'Internship',
-  'Freelance',
-  'Temporary'
+  'FULL_TIME',
+  'PART_TIME',
+  'CONTRACT',
+  'INTERNSHIP'
 ];
 
 export const SALARY_CURRENCIES: SalaryCurrency[] = [
@@ -429,36 +414,21 @@ export const SALARY_CURRENCIES: SalaryCurrency[] = [
 ];
 
 export const REQUIREMENT_STATUSES: RequirementStatus[] = [
-  'Draft',
-  'Approved',
-  'Active',
-  'On Hold',
-  'Closed',
-  'Rejected',
-  'Expired'
+  'ACTIVE',
+  'DRAFT',
+  'CLOSED',
+  'DELETE',
+  'APPROVED',
+  'RECRUITMENT',
+  'EMAIL'
 ];
 
 export const PUBLICATION_PLATFORMS: PublicationPlatform[] = [
-  'LinkedIn',
-  'Computrabajo',
-  'Indeed',
-  'Glassdoor',
-  'ZipRecruiter',
-  'AngelList',
-  'Stack Overflow Jobs',
-  'GitHub Jobs',
-  'Remote.co',
-  'We Work Remotely',
-  'Other'
+  'LINKEDIN', 'COMPUTRABAJO', 'INDEED', 'GLASSDOOR', 'COMPANYWEBSITE', 'OTHER'
 ];
 
 export const PUBLICATION_STATUSES: PublicationStatus[] = [
-  'Draft',
-  'Under Review',
-  'Published',
-  'Paused',
-  'Expired',
-  'Rejected'
+  'DRAFT', 'PUBLISHED', 'EXPIRED', 'SUSPENDED', 'ARCHIVED'
 ];
 
 // ==================== UTILITY TYPES ====================

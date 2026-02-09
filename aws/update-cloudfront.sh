@@ -1,18 +1,60 @@
 #!/bin/bash
 # Actualizar distribución CloudFront para apuntar a un nuevo bucket
 
-BUCKET_NAME=$1
-DOMAIN_NAME=$2
-CERT_ALIAS=$3
-REGION=$4
+# Load commons
+SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+source "${SCRIPT_DIR}/commons/log.sh"
+source "${SCRIPT_DIR}/commons/validate.sh"
+source "${SCRIPT_DIR}/commons/check.sh"
 
-if [ -z "$BUCKET_NAME" ] || [ -z "$DOMAIN_NAME" ] || [ -z "$CERT_ALIAS" ] || [ -z "$REGION" ]; then
-  echo "❌ Uso: ./update-cloudfront.sh <bucket-name> <domain-name> <cert-alias> <region>"
-  echo "   Ejemplo: ./update-cloudfront.sh nuevo-bucket.com dientecitas.com '*.dientecitas.com' us-east-1"
-  echo "   Nota: Si no proporcionas todos los parámetros, se solicitarán interactivamente"
+# Set module name for logging
+MODULE_NAME="update-cloudfront.sh"
+
+# Parse parameters
+BUCKET_NAME="$1"
+DOMAIN_NAME="$2"
+CERT_ALIAS="$3"
+REGION="$4"
+PROFILE="${5:-${AWS_PROFILE:-default}}"
+
+# Show help function
+show_help() {
+    cat << EOF
+🔄 Actualizar distribución CloudFront
+
+Uso: ./update-cloudfront.sh <bucket-name> <domain-name> <cert-alias> <region> [profile]
+
+Parámetros:
+  bucket-name      Nombre del bucket S3 de destino
+  domain-name      Nombre de dominio asociado a la distribución
+  cert-alias       Alias del certificado SSL (opcional, puede estar vacío "")
+  region           Región AWS del bucket
+  profile          Perfil de AWS (default: default o \$AWS_PROFILE)
+
+Ejemplos:
+  ./update-cloudfront.sh mi-bucket midominio.com midominio.com us-east-1
+  ./update-cloudfront.sh mi-bucket midominio.com "" us-east-1 production
+  AWS_PROFILE=dev ./update-cloudfront.sh mi-bucket midominio.com midominio.com us-east-1
+
+EOF
+}
+
+# Check for help parameter
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    show_help
+    exit 0
 fi
 
-echo "🔄 Actualizando distribución CloudFront para $DOMAIN_NAME..."
+# Validate required parameters
+if [ -z "$BUCKET_NAME" ] || [ -z "$DOMAIN_NAME" ] || [ -z "$REGION" ]; then
+    handle_error "❌ Uso: ./update-cloudfront.sh <bucket-name> <domain-name> <cert-alias> <region> [profile]"
+fi
+
+# Validate AWS configuration
+validate_aws_config "$PROFILE" "$REGION"
+validate_s3_bucket "$BUCKET_NAME" "$PROFILE"
+
+log "INFO" "🔄 Actualizando distribución CloudFront para $DOMAIN_NAME (profile: $PROFILE)"
 
 # Completar variables iniciales si están vacías
 if [ -z "$BUCKET_NAME" ]; then
@@ -45,7 +87,9 @@ echo "   CERT_ALIAS: ${CERT_ALIAS:-'(no especificado)'}"
 echo "   REGION: $REGION"
 
 # Buscar las distribuciones asociadas al dominio
+log "INFO" "🔍 Buscando distribuciones asociadas a $DOMAIN_NAME..."
 DISTRIBUTION_IDS=($(aws cloudfront list-distributions \
+  --profile "$PROFILE" \
   --query "DistributionList.Items[?Aliases.Items[?contains(@, '$DOMAIN_NAME')]].Id" \
   --output text))
 
@@ -78,15 +122,16 @@ fi
 echo "✅ Distribución seleccionada: $SELECTED_ID"
 
 # Crear directorio temporal para archivos de configuración
-TEMP_DIR=$(mktemp -d)
+TEMP_DIR="./temp-cloudfront-$$"
+mkdir -p "$TEMP_DIR"
 trap "rm -rf $TEMP_DIR" EXIT
 
 # Obtener la configuración actual y el ETag
 echo "📥 Obteniendo configuración actual..."
 if ! aws cloudfront get-distribution-config \
+  --profile "$PROFILE" \
   --id "$SELECTED_ID" > "$TEMP_DIR/current-config.json" 2>/dev/null; then
-  echo "❌ Error: La distribución $SELECTED_ID no existe o no se puede acceder."
-  exit 1
+  handle_error "Error: La distribución $SELECTED_ID no existe o no se puede acceder."
 fi
 
 ETAG=$(jq -r '.ETag' "$TEMP_DIR/current-config.json")
@@ -99,26 +144,26 @@ if [ ! -s "$TEMP_DIR/dist-config.json" ]; then
 fi
 
 # Verificar que el bucket existe y está configurado para hosting web
-echo "🔍 Verificando bucket S3..."
-if ! aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
-  echo "❌ Error: El bucket $BUCKET_NAME no existe o no es accesible"
-  exit 1
+log "INFO" "🔍 Verificando bucket S3..."
+if ! aws s3api head-bucket --profile "$PROFILE" --bucket "$BUCKET_NAME" 2>/dev/null; then
+  handle_error "Error: El bucket $BUCKET_NAME no existe o no es accesible"
 fi
 
 # Verificar configuración de website
-if ! aws s3api get-bucket-website --bucket "$BUCKET_NAME" >/dev/null 2>&1; then
-  echo "⚠️ Advertencia: El bucket $BUCKET_NAME no parece estar configurado para hosting web"
+if ! aws s3api get-bucket-website --profile "$PROFILE" --bucket "$BUCKET_NAME" >/dev/null 2>&1; then
+  log "WARN" "Advertencia: El bucket $BUCKET_NAME no parece estar configurado para hosting web"
+  log "INFO" "Puedes configurarlo con: ./configure-s3.sh $BUCKET_NAME $REGION"
   read -p "¿Continuar de todos modos? (y/N): " CONTINUE
   if [[ ! "$CONTINUE" =~ ^[Yy]$ ]]; then
-    echo "❌ Operación cancelada"
+    log "ERROR" "Operación cancelada"
     exit 1
   fi
 fi
 
 # Verificar certificado SSL si se proporciona CERT_ALIAS
 if [ -n "$CERT_ALIAS" ]; then
-  echo "🔍 Verificando certificado SSL..."
-  CERT_ARN=$(aws acm list-certificates --region us-east-1 \
+  log "INFO" "🔍 Verificando certificado SSL..."
+  CERT_ARN=$(aws acm list-certificates --region us-east-1 --profile "$PROFILE" \
     --query "CertificateSummaryList[?DomainName=='$CERT_ALIAS'].CertificateArn" --output text)
   
   if [ -z "$CERT_ARN" ]; then
@@ -131,6 +176,7 @@ if [ -n "$CERT_ALIAS" ]; then
   # Verificar el estado del certificado
   CERT_STATUS=$(aws acm describe-certificate \
     --region us-east-1 \
+    --profile "$PROFILE" \
     --certificate-arn "$CERT_ARN" \
     --query "Certificate.Status" --output text)
   
@@ -194,24 +240,24 @@ if ! jq -e '.Origins.Items[0].DomainName' "$TEMP_DIR/updated-config.json" >/dev/
 fi
 
 # Aplicar la actualización
-echo "📤 Aplicando actualización a CloudFront..."
+log "INFO" "📤 Aplicando actualización a CloudFront..."
 if ! aws cloudfront update-distribution \
+  --profile "$PROFILE" \
   --id "$SELECTED_ID" \
   --if-match "$ETAG" \
-  --distribution-config "file://$TEMP_DIR/updated-config.json" > /dev/null; then
-  echo "❌ Error: No se pudo actualizar la distribución de CloudFront"
-  echo "💡 Posibles causas:"
-  echo "   - La distribución fue modificada por otro proceso (ETag desactualizado)"
-  echo "   - Permisos insuficientes"
-  echo "   - Configuración inválida"
-  exit 1
+  --distribution-config "file://$TEMP_DIR/updated-config.json" > /dev/null 2>&1; then
+  handle_error "No se pudo actualizar la distribución de CloudFront. Posibles causas:
+   - La distribución fue modificada por otro proceso (ETag desactualizado)
+   - Permisos insuficientes
+   - Configuración inválida"
 fi
 
 echo "✅ Distribución actualizada para apuntar a $BUCKET_NAME"
 
 # Verificar invalidaciones pendientes antes de crear una nueva
-echo "🔍 Verificando invalidaciones pendientes..."
+log "INFO" "🔍 Verificando invalidaciones pendientes..."
 PENDING_INVALIDATIONS=$(aws cloudfront list-invalidations \
+  --profile "$PROFILE" \
   --distribution-id "$SELECTED_ID" \
   --query 'InvalidationList.Items[?Status==`InProgress`].Id' \
   --output text)
@@ -233,11 +279,12 @@ if [ -n "$PENDING_INVALIDATIONS" ] && [ "$PENDING_INVALIDATIONS" != "None" ]; th
       local dist_id=$1
       local start_time=$(date +%s)
       
-      while true; do
-        local pending=$(aws cloudfront list-invalidations \
-          --distribution-id "$dist_id" \
-          --query 'InvalidationList.Items[?Status==`InProgress`].Id' \
-          --output text)
+       while true; do
+         local pending=$(aws cloudfront list-invalidations \
+           --profile "$PROFILE" \
+           --distribution-id "$dist_id" \
+           --query 'InvalidationList.Items[?Status==`InProgress`].Id' \
+           --output text)
         
         if [ -z "$pending" ] || [ "$pending" = "None" ]; then
           echo ""
@@ -265,8 +312,9 @@ else
 fi
 
 # Invalidar la caché
-echo "🚀 Invalidando la caché de CloudFront..."
+log "INFO" "🚀 Invalidando la caché de CloudFront..."
 INVALIDATION_ID=$(aws cloudfront create-invalidation \
+  --profile "$PROFILE" \
   --distribution-id "$SELECTED_ID" \
   --paths "/*" \
   --query 'Invalidation.Id' \
@@ -286,12 +334,13 @@ if [ -n "$INVALIDATION_ID" ]; then
     echo "   Presiona Ctrl+C para salir del monitoreo (la invalidación continuará)"
     
     while true; do
-      # Obtener el estado actual
-      status=$(aws cloudfront get-invalidation \
-        --distribution-id "$dist_id" \
-        --id "$inv_id" \
-        --query 'Invalidation.Status' \
-        --output text 2>/dev/null)
+       # Obtener el estado actual
+       status=$(aws cloudfront get-invalidation \
+         --profile "$PROFILE" \
+         --distribution-id "$dist_id" \
+         --id "$inv_id" \
+         --query 'Invalidation.Status' \
+         --output text 2>/dev/null)
       
       if [ $? -ne 0 ]; then
         echo "❌ Error al consultar el estado de la invalidación"

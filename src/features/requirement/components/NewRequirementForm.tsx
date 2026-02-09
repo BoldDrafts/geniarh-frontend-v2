@@ -11,7 +11,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { aiService } from '../../../shared/api/aiService';
-import { Requirement } from '../api/requirementsService';
+import { Requirement } from '../types/requirementsTypes';
 
 interface NewRequirementFormProps {
   onClose: () => void;
@@ -29,11 +29,11 @@ const NewRequirementForm: React.FC<NewRequirementFormProps> = ({
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     department: initialData?.department || '',
-    priority: initialData?.priority || 'Medium',
-    timeframe: initialData?.timeframe || '1-2 months',
-    experienceLevel: initialData?.experienceLevel || 'Mid',
+    priority: initialData?.priority || 'MEDIUM',
+    timeframe: initialData?.timeframe || 'IMMEDIATE',
+    experienceLevel: initialData?.experienceLevel || 'MID',
     location: initialData?.location || '',
-    employmentType: initialData?.employmentType || 'Full-time',
+    employmentType: initialData?.employmentType || 'FULL_TIME',
     salaryMin: initialData?.salaryMin || 0,
     salaryMax: initialData?.salaryMax || 0,
     salaryCurrency: initialData?.salaryCurrency || 'PEN',
@@ -300,9 +300,9 @@ const NewRequirementForm: React.FC<NewRequirementFormProps> = ({
                 onChange={handleInputChange}
                 required
               >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
               </SelectInput>
             </div>
 
@@ -317,10 +317,10 @@ const NewRequirementForm: React.FC<NewRequirementFormProps> = ({
                 onChange={handleInputChange}
                 required
               >
-                <option value="Immediate">Immediate</option>
-                <option value="1-2 months">1-2 months</option>
-                <option value="3-6 months">3-6 months</option>
-                <option value="6+ months">6+ months</option>
+                <option value="IMMEDIATE">Immediate</option>
+                <option value="NORMAL">1-2 months</option>
+                <option value="FLEXIBLE">3-6 months</option>
+                <option value="LONG_TERM">6+ months</option>
               </SelectInput>
             </div>
 
@@ -335,11 +335,11 @@ const NewRequirementForm: React.FC<NewRequirementFormProps> = ({
                 onChange={handleInputChange}
                 required
               >
-                <option value="Entry">Entry Level</option>
-                <option value="Mid">Mid Level</option>
-                <option value="Senior">Senior Level</option>
-                <option value="Lead">Lead</option>
-                <option value="Executive">Executive</option>
+                <option value="ENTRY">Entry Level</option>
+                <option value="MID">Mid Level</option>
+                <option value="SENIOR">Senior Level</option>
+                <option value="LEAD">Lead</option>
+                <option value="EXECUTIVE">Executive</option>
               </SelectInput>
             </div>
 
@@ -372,10 +372,10 @@ const NewRequirementForm: React.FC<NewRequirementFormProps> = ({
                 onChange={handleInputChange}
                 required
               >
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-                <option value="Contract">Contract</option>
-                <option value="Internship">Internship</option>
+                <option value="FULL_TIME">Full-time</option>
+                <option value="PART_TIME">Part-time</option>
+                <option value="CONTRACT">Contract</option>
+                <option value="INTERNSHIP">Internship</option>
               </SelectInput>
             </div>
 

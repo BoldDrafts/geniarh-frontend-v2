@@ -1,258 +1,292 @@
 import { toast } from 'react-hot-toast';
-import { BaseService, PaginatedResponse } from '../../../shared/api/baseService';
-import {
+import { httpClient } from '../../../shared/api/httpClient';
+import { authService } from '../../../shared/api/authService';
+import type {
   Requirement,
-  Publication,
   RequirementListParams,
   CreateRequirementRequest,
-  PublicationPlatform
+  RequirementStatus
 } from '../types/requirementsTypes';
 
+interface RequirementPaginatedResponse {
+  data: Requirement[];
+  pagination: {
+    total: number;
+    pages: number;
+    current: number;
+    limit: number;
+  };
+}
+
 /**
- * Servicio de Requirements que extiende BaseService
- * Mantiene compatibilidad 100% con la API original
+ * Servicio de Requirements basado en OpenAPI specification
+ * Implementado directamente para coincidir exactamente con la API definida
  * Usa automáticamente el token bearer de Keycloak
  */
-class RequirementsService extends BaseService<
-  Requirement,
-  CreateRequirementRequest,
-  Partial<Requirement>
-> {
+class RequirementsService {
+  protected baseUrl: string;
+  protected resourceName: string;
+  protected requireAuth: boolean;
+  protected requiredRoles?: string[];
+  protected requireAllRoles: boolean;
+
   constructor() {
-    super({
-      baseUrl: import.meta.env.VITE_REQUIREMENTS_API_URL || import.meta.env.VITE_API_URL,
-      resourceName: 'requirements',
-      requireAuth: true,
-      requiredRoles: ['recruiter-supervisor', 'recruiter'],
-      requireAllRoles: false
-    });
+    this.baseUrl = import.meta.env.VITE_REQUIREMENTS_API_URL || import.meta.env.VITE_API_URL;
+    this.resourceName = 'requirements';
+    this.requireAuth = true;
+    this.requiredRoles = ['recruiter-supervisor', 'recruiter'];
+    this.requireAllRoles = false;
   }
 
-  // ==================== MÉTODOS ORIGINALES (100% compatibles) ====================
+  /**
+   * Validar autenticación y permisos antes de realizar operaciones
+   */
+  protected async validateAuth(): Promise<void> {
+    if (!this.requireAuth) return;
 
-  // Usa el método list del BaseService que ya incluye autenticación automática
-  async list(params?: RequirementListParams): Promise<PaginatedResponse<Requirement>> {
-    return super.list(params);
+    if (!await authService.ensureAuthenticated()) {
+      throw new Error('Authentication required');
+    }
+
+    if (this.requiredRoles && this.requiredRoles.length > 0) {
+      const hasPermission = authService.hasPermission(this.requiredRoles, this.requireAllRoles);
+      if (!hasPermission) {
+        const roleText = this.requireAllRoles ? 'todos los roles' : 'al menos uno de los roles';
+        toast.error(`Acceso denegado: Se requiere ${roleText}: ${this.requiredRoles.join(', ')}`);
+        throw new Error('Insufficient permissions');
+      }
+    }
   }
 
-  // Usa el método create del BaseService que ya incluye autenticación automática
-  async create(requirement: CreateRequirementRequest): Promise<Requirement> {
-    const requirementData = { ...requirement, status: requirement.status || 'Draft' };
-    return super.create(requirementData);
+  /**
+   * Manejar errores de API de forma consistente
+   */
+  protected handleError(error: any, operation: string): void {
+    console.error(`Error ${operation}:`, error);
+    const errorMessage = error.response?.data?.message || `Failed to ${operation}`;
+    toast.error(errorMessage);
+    throw error;
   }
 
-  // Usa el método update del BaseService que ya incluye autenticación automática
-  async update(id: string, requirement: Partial<Requirement>): Promise<Requirement> {
-    return super.update(id, requirement);
+  /**
+   * Construir URL del recurso
+   */
+  protected buildUrl(path: string = ''): string {
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    return `${this.baseUrl}/${this.resourceName}${cleanPath ? `/${cleanPath}` : ''}`;
   }
 
-  async updateStatus(id: string, status: Requirement['status']): Promise<Requirement> {
+  /**
+   * Operación personalizada para endpoints específicos
+   */
+  protected async customOperation<T>(id: string, operation: string, data?: any, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET'): Promise<T> {
+    await this.validateAuth();
+    
     try {
-      const data = await this.customOperation<Requirement>(id, 'status', { status }, 'PATCH');
+      const url = `${this.buildUrl(id)}/${operation}`;
+      
+      let response;
+      switch (method) {
+        case 'GET':
+          response = await httpClient.get<T>(url);
+          break;
+        case 'POST':
+          response = await httpClient.post<T>(url, data);
+          break;
+        case 'PUT':
+          response = await httpClient.put<T>(url, data);
+          break;
+        case 'PATCH':
+          response = await httpClient.patch<T>(url, data);
+          break;
+        case 'DELETE':
+          response = await httpClient.delete<T>(url);
+          break;
+      }
+      
+      return response!.data;
+    } catch (error: any) {
+      this.handleError(error, `custom operation ${operation}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Verificar si el usuario tiene un rol específico
+   */
+  protected hasRole(role: string): boolean {
+    return authService.hasRole(role);
+  }
+
+  // ==================== MÉTODOS OPENAPI COMPLIANT ====================
+
+  /**
+   * Listar todos los requirements (OpenAPI: GET /requirements)
+   */
+  async list(params?: RequirementListParams): Promise<RequirementPaginatedResponse> {
+    await this.validateAuth();
+    try {
+      const queryParams = {
+        ...params,
+        page: params?.page || 1,
+        limit: params?.limit || 20
+      };
+
+      const response = await httpClient.get<RequirementPaginatedResponse>(`${this.baseUrl}/${this.resourceName}`, {
+        params: queryParams
+      });
+
+      return response.data;
+    } catch (error: any) {
+      this.handleError(error, 'list requirements');
+      throw error;
+    }
+  }
+
+  /**
+   * Crear un nuevo requirement (OpenAPI: POST /requirements)
+   */
+  async create(requirement: CreateRequirementRequest): Promise<Requirement> {
+    await this.validateAuth();
+    try {
+      const requirementData = { ...requirement, status: requirement.status || 'DRAFT' };
+      const response = await httpClient.post<Requirement>(`${this.baseUrl}/${this.resourceName}`, requirementData);
+      toast.success('Requirement created successfully');
+      return response.data;
+    } catch (error: any) {
+      this.handleError(error, 'create requirement');
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener un requirement por ID (OpenAPI: GET /requirements/{id})
+   */
+  async get(id: string): Promise<Requirement> {
+    await this.validateAuth();
+    try {
+      const response = await httpClient.get<Requirement>(`${this.buildUrl(id)}`);
+      return response.data;
+    } catch (error: any) {
+      this.handleError(error, 'get requirement');
+      throw error;
+    }
+  }
+
+  /**
+   * Actualizar un requirement (OpenAPI: PUT /requirements/{id})
+   */
+  async update(id: string, requirement: Partial<Requirement>): Promise<Requirement> {
+    await this.validateAuth();
+    try {
+      const response = await httpClient.put<Requirement>(`${this.buildUrl(id)}`, requirement);
+      toast.success('Requirement updated successfully');
+      return response.data;
+    } catch (error: any) {
+      this.handleError(error, 'update requirement');
+      throw error;
+    }
+  }
+
+  /**
+   * Eliminar un requirement (OpenAPI: DELETE /requirements/{id})
+   */
+  async delete(id: string): Promise<void> {
+    await this.validateAuth();
+    try {
+      await httpClient.delete(`${this.buildUrl(id)}`);
+      toast.success('Requirement deleted successfully');
+    } catch (error: any) {
+      this.handleError(error, 'delete requirement');
+      throw error;
+    }
+  }
+
+  /**
+   * Actualizar estado de un requirement (OpenAPI: PATCH /requirements/{id}/status)
+   */
+  async updateStatus(id: string, status: RequirementStatus): Promise<Requirement> {
+    await this.validateAuth();
+    try {
+      const response = await httpClient.patch<Requirement>(`${this.buildUrl(id)}/status`, { status });
       toast.success(`Requirement status updated to ${status}`);
-      return data;
+      return response.data;
     } catch (error: any) {
       this.handleError(error, 'update requirement status');
+      throw error;
     }
   }
 
-  // ==================== PUBLICACIONES (métodos originales) ====================
+  // ==================== MÉTODOS EXTENDIDOS PARA COMPATIBILIDAD ====================
 
-  async createPublication(requirementId: string, publication: Omit<Publication, 'id'>): Promise<Publication> {
-    await this.validateAuth();
-    try {
-      const data = await this.customOperation<Publication>(
-        requirementId, 
-        'publications', 
-        publication, 
-        'POST'
-      );
-      toast.success('Publication created successfully');
-      return data;
-    } catch (error: any) {
-      this.handleError(error, 'create publication');
-    }
-  }
-
-  async updatePublication(requirementId: string, publicationId: string, publication: Publication): Promise<Publication> {
-    await this.validateAuth();
-    try {
-      // Para operaciones anidadas, construimos la URL manualmente pero usando customOperation
-      const url = `${requirementId}/publications/${publicationId}`;
-      const data = await this.customOperation<Publication>('', url, publication, 'PUT');
-      toast.success('Publication updated successfully');
-      return data;
-    } catch (error: any) {
-      this.handleError(error, 'update publication');
-    }
-  }
-
-  async deletePublication(requirementId: string, publicationId: string): Promise<void> {
-    await this.validateAuth();
-    try {
-      const url = `${requirementId}/publications/${publicationId}`;
-      await this.customOperation('', url, undefined, 'DELETE');
-      toast.success('Publication deleted successfully');
-    } catch (error: any) {
-      this.handleError(error, 'delete publication');
-    }
-  }
-
-  // ==================== CANDIDATOS (métodos originales) ====================
-
-  async assignCandidate(requirementId: string, candidateId: string): Promise<void> {
-    await this.validateAuth();
-    try {
-      const url = `${requirementId}/candidates/${candidateId}`;
-      await this.customOperation('', url, undefined, 'POST');
-      toast.success('Candidate assigned successfully');
-    } catch (error: any) {
-      this.handleError(error, 'assign candidate');
-    }
-  }
-
-  async unassignCandidate(requirementId: string, candidateId: string): Promise<void> {
-    await this.validateAuth();
-    try {
-      const url = `${requirementId}/candidates/${candidateId}`;
-      await this.customOperation('', url, undefined, 'DELETE');
-      toast.success('Candidate unassigned successfully');
-    } catch (error: any) {
-      this.handleError(error, 'unassign candidate');
-    }
-  }
-
-  async listCandidates(requirementId: string): Promise<string[]> {
-    await this.validateAuth();
-    try {
-      const data = await this.customOperation<string[]>(requirementId, 'candidates', undefined, 'GET');
-      return data;
-    } catch (error: any) {
-      this.handleError(error, 'fetch requirement candidates');
-    }
-  }
-
-  // ==================== MÉTODOS EXTENDIDOS ====================
-
+  /**
+   * Aprobar requirement (extensión para compatibilidad con código existente)
+   */
   async approve(id: string): Promise<Requirement> {
     if (!this.hasRole('hr-manager')) {
       toast.error('Solo los managers pueden aprobar requirements');
       throw new Error('Insufficient permissions to approve requirement');
     }
-    return this.updateStatus(id, 'Approved');
+    return this.updateStatus(id, 'APPROVED');
   }
 
+  /**
+   * Cerrar requirement (extensión para compatibilidad con código existente)
+   */
   async close(id: string): Promise<Requirement> {
     if (!this.hasRole('hr-manager')) {
       toast.error('Solo los managers pueden cerrar requirements');
       throw new Error('Insufficient permissions to close requirement');
     }
-    return this.updateStatus(id, 'Closed');
+    return this.updateStatus(id, 'CLOSED');
   }
 
+  /**
+   * Activar requirement (extensión para compatibilidad con código existente)
+   */
   async activate(id: string): Promise<Requirement> {
-    return this.updateStatus(id, 'Active');
+    return this.updateStatus(id, 'ACTIVE');
   }
 
-  async getPublications(requirementId: string): Promise<Publication[]> {
-    await this.validateAuth();
-    try {
-      const data = await this.customOperation<Publication[]>(requirementId, 'publications', undefined, 'GET');
-      return data;
-    } catch (error: any) {
-      this.handleError(error, 'fetch publications');
-    }
-  }
+  // ==================== FILTROS CONVENIENTES ====================
 
-  async publishToPlattform(requirementId: string, platform: PublicationPlatform, options?: { url?: string; expiresAt?: string }): Promise<Publication> {
-    const publicationData: Omit<Publication, 'id'> = {
-      platform,
-      url: options?.url || '',
-      status: 'Published',
-      publishedAt: new Date().toISOString(),
-      expiresAt: options?.expiresAt,
-      views: 0,
-      applications: 0,
-      engagement: { likes: 0, shares: 0, clicks: 0 }
-    };
-    return this.createPublication(requirementId, publicationData);
-  }
-
-  async updatePublicationMetrics(requirementId: string, publicationId: string, metrics: { views?: number; applications?: number; engagement?: Publication['engagement'] }): Promise<Publication> {
-    return this.updatePublication(requirementId, publicationId, metrics as Publication);
-  }
-
-  async assignMultipleCandidates(requirementId: string, candidateIds: string[]): Promise<{ success: string[]; failed: string[] }> {
-    const results = await Promise.allSettled(
-      candidateIds.map(candidateId => this.assignCandidate(requirementId, candidateId))
-    );
-
-    const success: string[] = [];
-    const failed: string[] = [];
-
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        success.push(candidateIds[index]);
-      } else {
-        failed.push(candidateIds[index]);
-      }
-    });
-
-    if (success.length > 0) toast.success(`${success.length} candidates assigned successfully`);
-    if (failed.length > 0) toast.error(`Failed to assign ${failed.length} candidates`);
-
-    return { success, failed };
-  }
-
-  // ==================== BÚSQUEDAS Y FILTROS ====================
-
+  /**
+   * Obtener requirements por departamento
+   */
   async getByDepartment(department: string): Promise<Requirement[]> {
     const response = await this.list({ department });
     return response.data;
   }
 
+  /**
+   * Obtener requirements por prioridad
+   */
   async getByPriority(priority: Requirement['priority']): Promise<Requirement[]> {
     const response = await this.list({ priority });
     return response.data;
   }
 
+  /**
+   * Obtener requirements activos
+   */
   async getActive(): Promise<Requirement[]> {
-    const response = await this.list({ status: 'Active' });
+    const response = await this.list({ status: 'ACTIVE' });
     return response.data;
   }
 
+  /**
+   * Obtener requirements en borrador
+   */
   async getDrafts(): Promise<Requirement[]> {
-    const response = await this.list({ status: 'Draft' });
+    const response = await this.list({ status: 'DRAFT' });
     return response.data;
   }
 
-  async getBySkills(skills: string[]): Promise<Requirement[]> {
-    await this.validateAuth();
-    try {
-      const data = await this.search({ skills });
-      return data.data;
-    } catch (error: any) {
-      this.handleError(error, 'search by skills');
-    }
-  }
+  // ==================== VALIDACIONES ====================
 
-  async getBySalaryRange(minSalary: number, maxSalary: number, currency: Requirement['salaryCurrency'] = 'USD'): Promise<Requirement[]> {
-    await this.validateAuth();
-    try {
-      const searchCriteria = {
-        salaryMin: minSalary,
-        salaryMax: maxSalary,
-        salaryCurrency: currency
-      };
-      const data = await this.search(searchCriteria);
-      return data.data;
-    } catch (error: any) {
-      this.handleError(error, 'search by salary range');
-    }
-  }
-
-  // ==================== UTILIDADES ====================
-
+  /**
+   * Validar requirement para publicación
+   */
   validateForPublication(requirement: Requirement): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
     if (!requirement.title?.trim()) errors.push('Title is required');
@@ -265,14 +299,14 @@ class RequirementsService extends BaseService<
     return { valid: errors.length === 0, errors };
   }
 
+  /**
+   * Verificar si se puede eliminar un requirement
+   */
   async canDelete(id: string): Promise<{ canDelete: boolean; reason?: string }> {
     try {
       const requirement = await this.get(id);
-      if (requirement.status === 'Active') {
+      if (requirement.status === 'ACTIVE') {
         return { canDelete: false, reason: 'Cannot delete active requirements. Please close it first.' };
-      }
-      if (requirement.candidates && requirement.candidates.length > 0) {
-        return { canDelete: false, reason: 'Cannot delete requirements with assigned candidates.' };
       }
       return { canDelete: true };
     } catch (error) {
@@ -280,6 +314,9 @@ class RequirementsService extends BaseService<
     }
   }
 
+  /**
+   * Eliminación segura de requirement
+   */
   async safeDelete(id: string): Promise<void> {
     const { canDelete, reason } = await this.canDelete(id);
     if (!canDelete) {
@@ -289,27 +326,34 @@ class RequirementsService extends BaseService<
     return this.delete(id);
   }
 
+  /**
+   * Duplicar requirement
+   */
   async duplicate(id: string, overrides?: Partial<CreateRequirementRequest>): Promise<Requirement> {
     await this.validateAuth();
     try {
       const original = await this.get(id);
-      const { id: _, createdAt, updatedAt, candidates, publications, ...duplicateData } = original;
+      const { id: _, createdAt, updatedAt, ...duplicateData } = original;
       const newRequirement: CreateRequirementRequest = {
         ...duplicateData,
         ...overrides,
         title: `${duplicateData.title} (Copy)`,
-        status: 'Draft'
+        status: 'DRAFT'
       };
       const result = await this.create(newRequirement);
       toast.success('Requirement duplicated successfully');
       return result;
     } catch (error: any) {
       this.handleError(error, 'duplicate requirement');
+      throw error;
     }
   }
 
+  /**
+   * Archivar requirement (cambiar a closed)
+   */
   async archive(id: string): Promise<Requirement> {
-    return this.updateStatus(id, 'Closed');
+    return this.updateStatus(id, 'CLOSED');
   }
 }
 

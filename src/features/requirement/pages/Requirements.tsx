@@ -30,11 +30,11 @@ import { recruitmentService } from '../../recruitment/api/recruitmentService';
 // Constants
 import { FullScreenLoader } from '../../../shared/components/FullScreenLoader';
 import { REQUIREMENTS_LOADING_KEYS, createLoadingKey } from '../../../shared/utils/loadingKeys';
-import { Requirement } from '../types/requirementsTypes';
+import { Requirement, RequirementStatus } from '../types/requirementsTypes';
 
 const Requirements: React.FC = () => {
   const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const [activeTab, setActiveTab] = useState<'active' | 'draft' | 'closed' | 'email'>('active');
+  const [activeTab, setActiveTab] = useState<RequirementStatus>('ACTIVE');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewRequirementForm, setShowNewRequirementForm] = useState(false);
   const [selectedRequirement, setSelectedRequirement] = useState<Requirement | null>(null);
@@ -69,7 +69,7 @@ const Requirements: React.FC = () => {
       setRequirements([]);
       const status = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
       const response = await requirementsService.list({ 
-        status: status as 'Active' | 'Draft' | 'Closed' 
+        status: status as RequirementStatus 
       });
       setRequirements(response.data);
     }, {
@@ -131,7 +131,7 @@ const Requirements: React.FC = () => {
       setSelectedRequirement(null);
       // Refresh detail if it's the same requirement
       if (detailRequirement?.id === data.id) {
-        await fetchRequirementDetail(data.id);
+        await fetchRequirementDetail(data.id!);
       }
     }, {
       onError: (error) => {
@@ -180,7 +180,7 @@ const Requirements: React.FC = () => {
       setRequirementToRecruitment(null);
       // Refresh detail if it's the same requirement
       if (detailRequirement?.id === requirementToRecruitment.id) {
-        await fetchRequirementDetail(requirementToRecruitment.id);
+        await fetchRequirementDetail(requirementToRecruitment.id!);
       }
     }, {
       onError: (error) => {
@@ -336,7 +336,7 @@ const Requirements: React.FC = () => {
     setShowConfirmRecruitment(true);
   };
 
-  const handleStatusChange = async (requirement: Requirement, newStatus: 'Active' | 'Draft' | 'Closed') => {
+  const handleStatusChange = async (requirement: Requirement, newStatus: RequirementStatus) => {
     const loadingKey = createLoadingKey(REQUIREMENTS_LOADING_KEYS.UPDATE_STATUS, requirement.id);
     
     await withLoading(loadingKey, async () => {
@@ -407,7 +407,7 @@ const Requirements: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div className="p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div className="flex flex-wrap gap-2">
-            {(['draft', 'active', 'closed', 'email'] as const).map((tab) => (
+            {(['DRAFT', 'ACTIVE', 'CLOSED', 'EMAIL'] as const).map((tab) => (
               <LoadingButton
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -420,13 +420,13 @@ const Requirements: React.FC = () => {
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {tab === 'email' ? (
+                {tab === 'EMAIL' ? (
                   <div className="flex items-center">
                     <Mail className="h-4 w-4 mr-1" />
                     Email
                   </div>
                 ) : (
-                  tab.charAt(0).toUpperCase() + tab.slice(1)
+                  tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase()
                 )}
               </LoadingButton>
             ))}
@@ -539,20 +539,20 @@ const Requirements: React.FC = () => {
                       <td className="px-4 py-4" style={{ minWidth: '100px', maxWidth: '120px' }}>
                         <div className="relative inline-block text-left">
                           <select 
-                            disabled={(req.status === 'Active') && activeTab !== 'email' || isLoading(createLoadingKey(REQUIREMENTS_LOADING_KEYS.UPDATE_STATUS, req.id!))}
+                            disabled={(req.status === 'ACTIVE') && activeTab !== 'EMAIL' || isLoading(createLoadingKey(REQUIREMENTS_LOADING_KEYS.UPDATE_STATUS, req.id!))}
                             value={req.status}
-                            onChange={(e) => handleStatusChange(req, e.target.value as 'Active' | 'Draft' | 'Closed')}
+                            onChange={(e) => handleStatusChange(req, e.target.value as RequirementStatus)}
                             onClick={(e) => e.stopPropagation()}
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              req.status === 'Active' ? 'bg-green-100 text-green-800' :
-                              req.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
+                              req.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                              req.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
                               'bg-gray-100 text-gray-800'
                             } border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-full disabled:opacity-50`}
                           >
-                            {activeTab === 'email' && (<option value="Email">Email</option>)}
-                            <option value="Draft">Draft</option>
-                            <option value="Active">Active</option>
-                            <option value="Closed">Closed</option>
+                            {activeTab === 'EMAIL' && (<option value="EMAIL">Email</option>)}
+                            <option value="DRAFT">Draft</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="CLOSED">Closed</option>
                           </select>
                           {isLoading(createLoadingKey(REQUIREMENTS_LOADING_KEYS.UPDATE_STATUS, req.id!)) && (
                             <div className="absolute inset-0 flex items-center justify-center">
@@ -575,7 +575,7 @@ const Requirements: React.FC = () => {
                               <Edit3 className="h-4 w-4" />
                             )}
                           </button>
-                          {activeTab === 'closed' && (
+                          {activeTab === 'CLOSED' && (
                             <button 
                               onClick={(e) => confirmDelete(req, e)}
                               disabled={isLoading(createLoadingKey(REQUIREMENTS_LOADING_KEYS.DELETE_REQUIREMENT, req.id!))}
@@ -585,7 +585,7 @@ const Requirements: React.FC = () => {
                               <Trash2 className="h-4 w-4" />
                             </button>
                           )}
-                          {req.status === 'Active' && (
+                          {req.status === 'ACTIVE' && (
                             <button 
                               onClick={(e) => confirmRecruitment(req, e)}
                               disabled={isLoading(createLoadingKey(REQUIREMENTS_LOADING_KEYS.REGISTER_RECRUITMENT, req.id!))}
@@ -620,9 +620,9 @@ const Requirements: React.FC = () => {
             </h2>
             <div className="flex items-center space-x-2">
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                detailRequirement.status === 'Active' ? 'bg-green-100 text-green-800' :
-                detailRequirement.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
-                detailRequirement.status === 'Approved' ? 'bg-blue-100 text-blue-800' :
+                detailRequirement.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                detailRequirement.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
+                detailRequirement.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
                 'bg-gray-100 text-gray-800'
               }`}>
                 {detailRequirement.status}
@@ -664,8 +664,8 @@ const Requirements: React.FC = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-1">Priority</h3>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  detailRequirement.priority === 'High' ? 'bg-red-100 text-red-800' :
-                  detailRequirement.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                  detailRequirement.priority === 'HIGH' ? 'bg-red-100 text-red-800' :
+                  detailRequirement.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
                   'bg-green-100 text-green-800'
                 }`}>
                   {detailRequirement.priorityLabel}
@@ -751,8 +751,8 @@ const Requirements: React.FC = () => {
                         <div className="flex items-center space-x-2">
                           <span className="text-xs font-medium text-gray-900">{publication.platform}</span>
                           <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-                            publication.status === 'Published' ? 'bg-green-100 text-green-800' :
-                            publication.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
+                            publication.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' :
+                            publication.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
                             {publication.status}
