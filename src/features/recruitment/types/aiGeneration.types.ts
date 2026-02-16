@@ -3,14 +3,14 @@
  * Following the same pattern as BulkUploadResponse for async operations
  */
 
+import { ExperienceLevel } from "./base";
+
 // ==================== Enums ====================
 
 /**
  * Status values from OpenAPI spec (lowercase)
  */
 export type AIGenerationStatusEnum = 'pending' | 'generating' | 'validating' | 'completed' | 'failed' | 'cancelled';
-
-export type ExperienceLevel = 'junior' | 'mid' | 'senior' | 'lead';
 
 export type SupportedLanguage = 'en' | 'es' | 'fr' | 'de' | 'pt' | 'it';
 

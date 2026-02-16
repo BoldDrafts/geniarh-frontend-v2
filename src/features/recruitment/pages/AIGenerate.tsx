@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Sparkles, Clock, Plus, Send, AlertCircle, CheckCircle, XCircle, RefreshCw, Trash2, ChevronRight, Wand2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Clock, Plus, Send, AlertCircle, CheckCircle, XCircle, RefreshCw, ChevronRight, Wand2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 import { useAIGeneration } from '../hooks/useAIGeneration';
 
 // Services
-import { AIGenerateRequest, AIGenerateResponse } from '../api/aiGenerateService';
+import { AIGenerateRequest } from '../api/aiGenerateService';
 
 // Types
 import { RecruitmentProcess } from '../types/recruitment';
@@ -37,10 +37,6 @@ const AIGeneratePage: React.FC = () => {
     createPrompt,
     fetchPrompts,
     fetchAIGenerations,
-    cancelPrompt,
-    retryPrompt,
-    deletePrompt,
-    updatePromptPriority,
     refreshPrompts,
     clearError,
     generateJobPrompt
@@ -123,9 +119,10 @@ const AIGeneratePage: React.FC = () => {
 
     try {
       await createPrompt({
-        recruitmentId: id,
-        prompt: prompt.trim(),
-        priority
+        customPrompt: prompt.trim(),
+        count: 10,
+        experienceLevel: recruitment?.requirement.experienceLevel!,
+        skills: recruitment?.requirement.skills!
       });
 
       // Reset form and switch to monitor view
@@ -134,57 +131,6 @@ const AIGeneratePage: React.FC = () => {
       setViewMode('monitor');
     } catch (error) {
       console.error('Error creating prompt:', error);
-    }
-  };
-
-  const handleCancel = async (promptId: string) => {
-    try {
-      await cancelPrompt(promptId);
-    } catch (error) {
-      console.error('Error cancelling prompt:', error);
-    }
-  };
-
-  const handleRetry = async (promptId: string) => {
-    try {
-      await retryPrompt(promptId);
-    } catch (error) {
-      console.error('Error retrying prompt:', error);
-    }
-  };
-
-  const handleDelete = async (promptId: string) => {
-    if (!confirm('Are you sure you want to delete this prompt?')) {
-      return;
-    }
-
-    try {
-      await deletePrompt(promptId);
-    } catch (error) {
-      console.error('Error deleting prompt:', error);
-    }
-  };
-
-  const handlePriorityChange = async (promptId: string, newPriority: AIGenerateRequest['priority']) => {
-    try {
-      await updatePromptPriority(promptId, newPriority);
-    } catch (error) {
-      console.error('Error updating priority:', error);
-    }
-  };
-
-  const getStatusIcon = (status: AIGenerateResponse['status']) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'processing':
-        return <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />;
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'failed':
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
 
@@ -205,21 +151,6 @@ const AIGeneratePage: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: AIGenerateResponse['status']) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'processing':
-        return 'bg-blue-100 text-blue-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const getAIGenerationStatusColor = (status: import('../types/aiGeneration.types').AIGenerationStatusEnum) => {
     switch (status) {
       case 'pending':
@@ -234,19 +165,6 @@ const AIGeneratePage: React.FC = () => {
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPriorityColor = (priority: AIGenerateRequest['priority']) => {
-    switch (priority) {
-      case 'high':
-        return 'text-red-600 bg-red-50 border-red-200';
-      case 'medium':
-        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'low':
-        return 'text-green-600 bg-green-50 border-green-200';
-      default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
 
@@ -354,16 +272,6 @@ const AIGeneratePage: React.FC = () => {
             </button>
           </nav>
         </div>
-
-        {/* Tab Descriptions */}
-        <div className="mt-2 text-sm text-gray-600">
-          {viewMode === 'create' && (
-            <p>Create new AI prompts to generate candidates for this position</p>
-          )}
-          {viewMode === 'monitor' && (
-            <p>Monitor the status of your AI generation prompts and view results</p>
-          )}
-        </div>
       </div>
 
       {/* Tab Content */}
@@ -402,29 +310,6 @@ const AIGeneratePage: React.FC = () => {
                 <p className="text-gray-600">
                   Describe the type of candidates you're looking for and our AI will generate potential matches.
                 </p>
-              </div>
-
-              {/* Priority Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Priority Level
-                </label>
-                <div className="flex items-center space-x-4">
-                  {(['low', 'medium', 'high'] as const).map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPriority(p)}
-                      className={`px-4 py-2 rounded-md border-2 text-sm font-medium transition-colors ${
-                        priority === p
-                          ? getPriorityColor(p)
-                          : 'text-gray-600 bg-white border-gray-300 hover:border-gray-400'
-                      }`}
-                    >
-                      {p.charAt(0).toUpperCase() + p.slice(1)}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               {/* Prompt Input */}
@@ -567,7 +452,7 @@ const AIGeneratePage: React.FC = () => {
           )}
 
           {/* Empty State */}
-          {!loading && prompts.length === 0 && (
+          {!loading && prompts.length === 0 && aiGenerations.data.length === 0 && (
             <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
               <Sparkles className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No prompts found</h3>
@@ -644,10 +529,10 @@ const AIGeneratePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Prompts List */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              {/* AI Generations List */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">AI Generation Prompts</h3>
+                  <h3 className="text-lg font-medium text-gray-900">AI Generation History</h3>
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => {
@@ -669,101 +554,7 @@ const AIGeneratePage: React.FC = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {prompts.map((promptItem) => (
-                    <div
-                      key={promptItem.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center mb-2">
-                            {getStatusIcon(promptItem.status)}
-                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(promptItem.status)}`}>
-                              {promptItem.status.charAt(0).toUpperCase() + promptItem.status.slice(1)}
-                            </span>
-                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(promptItem.priority)}`}>
-                              {promptItem.priority.charAt(0).toUpperCase() + promptItem.priority.slice(1)} Priority
-                            </span>
-                          </div>
-                          
-                          <p className="text-sm text-gray-900 mb-2 line-clamp-3">
-                            {promptItem.prompt}
-                          </p>
-                          
-                          <div className="flex items-center text-xs text-gray-500 space-x-4">
-                            <span>Created: {new Date(promptItem.createdAt).toLocaleString()}</span>
-                            {promptItem.processedAt && (
-                              <span>Processed: {new Date(promptItem.processedAt).toLocaleString()}</span>
-                            )}
-                          </div>
-
-                          {promptItem.error && (
-                            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
-                              <p className="text-xs text-red-800">{promptItem.error}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center space-x-2 ml-4">
-                          {/* Priority Dropdown */}
-                          <select
-                            value={promptItem.priority}
-                            onChange={(e) => handlePriorityChange(promptItem.id, e.target.value as AIGenerateRequest['priority'])}
-                            className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                          >
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                          </select>
-
-                          {/* Action Buttons */}
-                          {promptItem.status === 'pending' && (
-                            <button
-                              onClick={() => handleCancel(promptItem.id)}
-                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                              title="Cancel prompt"
-                            >
-                              <XCircle className="h-4 w-4" />
-                            </button>
-                          )}
-
-                          {promptItem.status === 'failed' && (
-                            <button
-                              onClick={() => handleRetry(promptItem.id)}
-                              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                              title="Retry prompt"
-                            >
-                              <RefreshCw className="h-4 w-4" />
-                            </button>
-                          )}
-
-                          {(promptItem.status === 'completed' || promptItem.status === 'failed') && (
-                            <button
-                              onClick={() => handleDelete(promptItem.id)}
-                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                              title="Delete prompt"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* AI Generations List */}
-              {aiGenerations.data.length > 0 && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">AI Generation History</h3>
-                  </div>
-
-                  <div className="space-y-4">
-                    {aiGenerations.data.map((generation) => (
+                  {aiGenerations.data.map((generation) => (
                       <div
                         key={generation.generationId}
                         className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
@@ -809,10 +600,9 @@ const AIGeneratePage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-              )}
-            </>
-          )}
-        </div>
+              </>
+            )}
+          </div>
       )}
     </div>
   );

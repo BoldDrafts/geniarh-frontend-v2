@@ -115,7 +115,7 @@ fi
 
 # Hacer públicos los archivos del bucket
 log "INFO" "Aplicando política de acceso público..."
-local bucket_policy
+bucket_policy=
 bucket_policy=$(cat <<EOF
 {
   "Version": "2012-10-17",
@@ -137,7 +137,6 @@ if ! aws s3api put-bucket-policy --bucket "$BUCKET_NAME" \
 fi
 
 # Obtener URL del sitio web
-local website_url
 website_url="http://$BUCKET_NAME.s3-website-$REGION.amazonaws.com"
 
 log "SUCCESS" "Bucket $BUCKET_NAME configurado como sitio web estático"

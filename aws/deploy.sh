@@ -98,7 +98,6 @@ if [[ "$ACTION" == "configure" || "$ACTION" == "all" ]]; then
         handle_error "S3 configuration failed. Review error messages above."
     fi
 fi
-fi
 
 if [[ "$ACTION" == "upload" || "$ACTION" == "all" ]]; then
     log "INFO" "🚀 Subiendo build al bucket..."
@@ -112,14 +111,6 @@ if [[ "$ACTION" == "upload" || "$ACTION" == "all" ]]; then
             upload_failed=true
             handle_error "Upload failed. Review error messages above."
         fi
-    fi
-fi
-    else
-        if ! ./upload.sh "$BUCKET_NAME" "$REGION"; then
-            upload_failed=true
-            handle_error "Upload failed. Review the error messages above."
-        fi
-    fi
 fi
 
 if [[ "$ACTION" == "cloudfront" ]]; then
@@ -153,7 +144,6 @@ if [[ "$build_failed" = false && "$configure_failed" = false && "$upload_failed"
     
     # Mostrar información útil
     if [[ "$ACTION" == "all" || "$ACTION" == "configure" || "$ACTION" == "upload" ]]; then
-        local website_url
         website_url="http://$BUCKET_NAME.s3-website-$REGION.amazonaws.com"
         log "INFO" "🌐 Website URL: $website_url"
         log "INFO" "⏳ Nota: Puede tomar unos minutos hasta que el sitio esté completamente disponible"

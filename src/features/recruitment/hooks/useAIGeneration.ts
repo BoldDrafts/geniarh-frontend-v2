@@ -60,13 +60,12 @@ interface UseAIGenerationActions {
   trackGenerationProgress: (generationId: string, onProgress?: (status: AIGenerationStatus) => void) => Promise<AIGenerationResults>;
   clearError: () => void;
   generateJobPrompt: (recruitmentData: unknown) => Promise<string>;
-createPrompt: (request: AIGenerateRequest) => Promise<void>;
+  createPrompt: (request: AIGenerateCandidatesRequest) => Promise<void>;
   fetchPrompts: (recruitmentId: string, params?: PromptFilterParams) => Promise<void>;
   fetchAIGenerations: (recruitmentId: string, params?: AIGenerationFilterParams) => Promise<void>;
   cancelPrompt: (promptId: string) => Promise<void>;
   retryPrompt: (promptId: string) => Promise<void>;
   deletePrompt: (promptId: string) => Promise<void>;
-  updatePromptPriority: (promptId: string, priority: AIGenerateRequest['priority']) => Promise<void>;
   refreshPrompts: (recruitmentId: string) => Promise<void>;
 }
 
@@ -455,20 +454,12 @@ export const useAIGeneration = (recruitmentId: string): UseAIGenerationState & U
     }
   }, [setLoading, setError]);
 
-  const createPrompt = useCallback(async (request: AIGenerateRequest): Promise<void> => {
+  const createPrompt = useCallback(async (request: AIGenerateCandidatesRequest): Promise<void> => {
     try {
       setSubmitting(true);
       setError(null);
 
-      // Convert legacy prompt request to new AI generation request
-      const aiRequest: AIGenerateCandidatesRequest = {
-        count: 10, // Default count - can be made configurable
-        experienceLevel: 'mid', // Default experience level
-        skills: [], // Skills can be extracted from prompt or made configurable
-        customPrompt: request.prompt // Use customPrompt field for the legacy prompt text
-      };
-
-      await aiGenerateService.generateCandidates(recruitmentId, aiRequest);
+      await aiGenerateService.generateCandidates(recruitmentId, request);
 
       // Refresh AI generations list
       await fetchAIGenerations(recruitmentId);
@@ -490,13 +481,12 @@ export const useAIGeneration = (recruitmentId: string): UseAIGenerationState & U
     trackGenerationProgress,
     clearError,
     generateJobPrompt,
-createPrompt,
+    createPrompt,
     fetchPrompts,
     fetchAIGenerations,
     cancelPrompt,
     retryPrompt,
     deletePrompt,
-    updatePromptPriority,
     refreshPrompts
   };
 };
